@@ -55,7 +55,7 @@ terrainImage.onload = () => {
     
     // Gera o chão principal com um buraco no meio
     const gapStartTile = 15; // Onde o buraco começa (tile 15)
-    const gapEndTile = 18;  // Onde o chão recomeça (tile 18)
+    const gapEndTile = 17;  // Onde o chão recomeça (tile 18)
     const numGroundTiles = 20;
     const tileSpacing = 15.4;
 
@@ -90,23 +90,22 @@ terrainImage.onload = () => {
 
 // Assim que a imagem da água carregar, cria o lago NO BURACO
 waterImage.onload = () => {
-    waterLoaded = true; 
+    waterLoaded = true;
 
     // Define o cropbox para usar a imagem inteira da água
     const waterCropbox = {
         x: 0,
-        y: 0,
+        y: 2,
         width: waterImage.width, // Usa a largura real da imagem
         height: waterImage.height
     };
 
-    const lakeY = 185;
+    const lakeY = 190;
     
     const gapStartTile = 15;    // Onde o buraco começa (tile 15)
     const tileSpacing = 15.4;   // O espaçamento dos tiles de chão
     
     const lakeX = tileSpacing * gapStartTile;
-    const waterWidth = waterCropbox.width; 
     // TODO: Criar um tipo de plataforma específico para o lago (que não seja sólido) para que o personagem possa cair.
     platforms.push(new Platform({
         position: { x: lakeX, y: lakeY },
@@ -114,11 +113,7 @@ waterImage.onload = () => {
         cropbox: waterCropbox
     }));
     
-    platforms.push(new Platform({
-        position: { x: lakeX + waterWidth, y: lakeY },
-        image: waterImage,
-        cropbox: waterCropbox
-    }));
+    
 
     
 };
