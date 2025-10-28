@@ -74,7 +74,7 @@ class BarryCherry {
 
             context.restore(); // Restaura o estado anterior do contexto
 
-             // Desenhar hitbox (para debug, descomente se precisar)
+             // Desenhar hitbox
             /*
             context.fillStyle = 'rgba(0, 0, 255, 0.5)';
             context.fillRect(

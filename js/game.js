@@ -97,6 +97,12 @@ terrainImage.onload = () => {
     const barryStartX = 150;     // Posição X inicial (entre a plataforma e o lago)
     const barry = new BarryCherry({ x: barryStartX, y: barryStartY });
     enemies.push(barry);
+
+    // Cria o inimigo Toggle
+    const toggleStartY = 190 - 32; // Posição Y (altura do chão - altura do Barry)
+    const toggleStartX = 150;     // Posição X inicial (entre a plataforma e o lago)
+    const toggle = new Toggle({ x: toggleStartX, y: toggleStartY });
+    enemies.push(toggle);
 };
 
 // Assim que a imagem da água carregar, cria o lago NO BURACO
