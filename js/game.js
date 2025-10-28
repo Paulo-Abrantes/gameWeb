@@ -3,10 +3,10 @@ const context = canvas.getContext('2d');
 
 // Define o tamanho do canvas principal
 canvas.width = 1024;
-canvas.height = 576; 
+canvas.height = 576;
 
 // Cria uma versão "escalada" do canvas, pra facilitar o zoom ou resolução
-const scaleFactor = 4; 
+const scaleFactor = 4;
 const scaledCanvas = {
     width: canvas.width / scaleFactor,
     height: canvas.height / scaleFactor
@@ -33,26 +33,31 @@ const waterImage = new Image();
 waterImage.src = Water_framesPath;
 let waterLoaded = false;
 
-
 // Cria o jogador
 const player = new Player();
+
+// Array para guardar os inimigos
+const enemies = [];
 
 // Arrays que guardam as plataformas (chão e objetos sólidos)
 const platforms = [];        // plataformas normais (colidem só por cima)
 const solidPlatforms = [];   // plataformas sólidas (colidem por todos os lados)
+
+// Variável para calcular o deltaTime
+let lastTime;
 
 // Assim que a imagem do terreno carregar, cria as plataformas
 terrainImage.onload = () => {
     terrainLoaded = true; // Marca que o terreno foi carregado
 
     // Cria o chão do cenário
-    const groundCropbox = { 
+    const groundCropbox = {
         x: 149,
         y: 123,
         width: 17,
         height: 19
     };
-    
+
     // Gera o chão principal com um buraco no meio
     const gapStartTile = 15; // Onde o buraco começa (tile 15)
     const gapEndTile = 17;  // Onde o chão recomeça (tile 18)
@@ -64,14 +69,14 @@ terrainImage.onload = () => {
         if (i >= gapStartTile && i < gapEndTile) {
             continue; // Pula essa iteração, não cria plataforma
         }
-        
+
         platforms.push(new Platform({
-            position: { x: tileSpacing * i, y: 190 }, 
+            position: { x: tileSpacing * i, y: 190 },
             image: terrainImage,
             cropbox: groundCropbox
         }));
     }
-    
+
     // Cria uma plataforma elevada (tipo um bloco flutuante)
     const elevadaCropbox = {
         x: 47,
@@ -84,8 +89,14 @@ terrainImage.onload = () => {
     solidPlatforms.push(new Platform({
         position: { x: 100, y: 158 },
         image: terrainImage,
-        cropbox: elevadaCropbox 
+        cropbox: elevadaCropbox
     }));
+
+    // Cria o inimigo Barry Cherry
+    const barryStartY = 190 - 32; // Posição Y (altura do chão - altura do Barry)
+    const barryStartX = 150;     // Posição X inicial (entre a plataforma e o lago)
+    const barry = new BarryCherry({ x: barryStartX, y: barryStartY });
+    enemies.push(barry);
 };
 
 // Assim que a imagem da água carregar, cria o lago NO BURACO
@@ -101,21 +112,17 @@ waterImage.onload = () => {
     };
 
     const lakeY = 190;
-    
+
     const gapStartTile = 15;    // Onde o buraco começa (tile 15)
     const tileSpacing = 15.4;   // O espaçamento dos tiles de chão
-    
+
     const lakeX = tileSpacing * gapStartTile;
     // TODO: Criar um tipo de plataforma específico para o lago (que não seja sólido) para que o personagem possa cair.
     platforms.push(new Platform({
         position: { x: lakeX, y: lakeY },
-        image: waterImage, 
+        image: waterImage,
         cropbox: waterCropbox
     }));
-    
-    
-
-    
 };
 
 // Cria a câmera que vai acompanhar o jogador
@@ -129,12 +136,12 @@ const camera = {
 // Função principal do jogo — roda várias vezes por segundo
 function animate() {
     window.requestAnimationFrame(animate);
-    
+
     // Espera carregar TODAS as imagens antes de começar a desenhar
     if (!background.loaded || !terrainLoaded || !waterLoaded) {
         return;
     }
-    
+
     // Limpa a tela com fundo preto
     context.fillStyle = 'black';
     context.fillRect(0, 0, canvas.width, canvas.height);
@@ -151,8 +158,20 @@ function animate() {
     const worldWidth = background.width;
     const worldHeight = background.height;
 
+    // Calcula o deltaTime (tempo desde o último frame) - NECESSÁRIO PARA BarryCherry
+    const currentTime = performance.now();
+    const deltaTime = (currentTime - (lastTime || currentTime)) / 1000; // Tempo em segundos
+    lastTime = currentTime;
+    // --- Fim do cálculo deltaTime ---
+
     // Atualiza o jogador, verificando colisões com os dois tipos de plataforma
     player.update(worldHeight, worldWidth, platforms, solidPlatforms);
+
+     // Atualiza todos os inimigos
+     for (const enemy of enemies) {
+        // Passamos deltaTime para o update do inimigo
+         enemy.update(deltaTime);
+    }
 
     // Atualiza a posição da câmera pra seguir o jogador
     camera.position.x = -player.position.x + (scaledCanvas.width / 2);
@@ -162,7 +181,7 @@ function animate() {
     if (camera.position.y > 0) camera.position.y = 0;
     if (camera.position.y < -(worldHeight - scaledCanvas.height)) camera.position.y = -(worldHeight - scaledCanvas.height);
 
-    // Desenha todos os elementos do jogo (fundo, plataformas e jogador)
+    // Desenha todos os elementos do jogo
     context.translate(camera.position.x, camera.position.y);
 
     background.draw(context);
@@ -175,6 +194,11 @@ function animate() {
     // Desenha as plataformas sólidas
     for (const platform of solidPlatforms) {
         platform.draw(context);
+    }
+
+    // Desenha todos os inimigos
+    for (const enemy of enemies) {
+        enemy.draw(context);
     }
 
     // Finalmente, desenha o jogador na tela
