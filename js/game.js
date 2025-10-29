@@ -207,12 +207,12 @@ waterImage.onload = () => {
   const patrolEndX   = 231; // ~ início do lago (15 * 15.4)
 
   // posições iniciais
-  const barryX  = 150;
+  const cerejinhaX  = 150;
   const astroX = 185;
 
-  const barry  = new BarryCherry({ x: barryX,  y: spawnY, patrolStartX, patrolEndX });
+  const cerejinha  = new Cerejinha({ x: cerejinhaX,  y: spawnY, patrolStartX, patrolEndX });
   const astro = new Astro({      x: astroX, y: spawnY, patrolStartX, patrolEndX });
-  enemies.push(barry, astro);
+  enemies.push(cerejinha, astro);
 
   console.log('Enemies spawned:', enemies.length);
 };

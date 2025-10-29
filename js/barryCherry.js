@@ -1,10 +1,10 @@
-// --- CLASSE BarryCherry (Inimigo) ---
-const BARRY_X_VELOCITY = 20; // Velocidade de movimento do Barry
+// --- CLASSE Cerejinha(Inimigo) ---
+const CEREJINHA_X_VELOCITY = 20; // Velocidade de movimento do Cerejinha
 
-class BarryCherry {
+class Cerejinha {
   constructor({ x, y, patrolStartX = 148, patrolEndX = 231 }) {
     this.position = { x: x, y: y };
-    this.velocity = { x: BARRY_X_VELOCITY, y: 0 }; // Começa movendo para a direita
+    this.velocity = { x: CEREJINHA_X_VELOCITY, y: 0 }; // Começa movendo para a direita
     this.width = 32;  // Largura do frame do sprite
     this.height = 32; // Altura do frame do sprite
     this.isImageLoaded = false;
@@ -12,8 +12,8 @@ class BarryCherry {
     this.image.onload = () => {
       this.isImageLoaded = true;
     };
-    // Caminho para a imagem do Barry Cherry
-    this.image.src = './Sprite Pack 8/7 - Barry Cherry/Running (32 x 32).png';
+    // Caminho para a imagem do Cerejinha
+    this.image.src = './Sprite Pack 8/4 - Cerejinha/Running (32 x 32).png';
 
     this.elapsedTime = 0;
     this.currentFrame = 0;
@@ -35,7 +35,7 @@ class BarryCherry {
     };
   }
 
-  // Desenha o frame correto do Barry Cherry
+  // Desenha o frame correto do Cerejinha
   draw(context) {
     if (!this.isImageLoaded) return;
 
@@ -78,7 +78,7 @@ class BarryCherry {
     }
   }
 
-  // Atualiza a posição e direção do Barry
+  // Atualiza a posição e direção do Cerejinha
   update(deltaTime) {
     if (!deltaTime) return;
 
@@ -91,11 +91,11 @@ class BarryCherry {
     // Verifica limites da patrulha
     if (this.position.x + this.width >= this.patrolEndX && this.velocity.x > 0) {
       // Chegou ao limite direito, inverte a direção
-      this.velocity.x = -BARRY_X_VELOCITY;
+      this.velocity.x = -CEREJINHA_X_VELOCITY;
       this.facing = 'left';
     } else if (this.position.x <= this.patrolStartX && this.velocity.x < 0) {
       // Chegou ao limite esquerdo, inverte a direção
-      this.velocity.x = BARRY_X_VELOCITY;
+      this.velocity.x = CEREJINHA_X_VELOCITY;
       this.facing = 'right';
     }
 
