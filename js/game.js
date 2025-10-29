@@ -19,20 +19,26 @@ const CLOUD_SPEED_2 = 1.0; // Velocidade de rolagem das nuvens mais rápidas
 const CHUNKS_PER_LEVEL = 4; // Cada nível dura 4 pedaços de mapa
 const CHUNK_WIDTH = 20 * 15.4; // Largura de cada pedaço do chão
 
-let worldBuildLimit = 0;    // A posição X onde o PRÓXIMO CHUNK deve ser construído
-let currentLevel = 1;       // Nível atual em que o jogador se encontra
-let totalChunkIndex = 0;    // Contador total de chunks já construídos
+let worldBuildLimit = 0; // A posição X onde o PRÓXIMO CHUNK deve ser construído
+let currentLevel = 1; // Nível atual em que o jogador se encontra
+let totalChunkIndex = 0; // Contador total de chunks já construídos
 
 // --- DEFINIÇÃO DO TEMA (Grassland Único) ---
 const GRASSLAND_THEME = {
   bgPaths: {
-    skyColor: "./Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Background parts/5 - Sky_color.png",
-    cloud1:   "./Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Background parts/3 - Cloud_cover_1.png",
-    cloud2:   "./Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Background parts/4 - Cloud_cover_2.png",
-    hills:    "./Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Background parts/2 - Hills.png",
-    foreground: "./Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Background parts/1 - Foreground_scenery.png",
+    skyColor:
+      "./Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Background parts/5 - Sky_color.png",
+    cloud1:
+      "./Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Background parts/3 - Cloud_cover_1.png",
+    cloud2:
+      "./Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Background parts/4 - Cloud_cover_2.png",
+    hills:
+      "./Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Background parts/2 - Hills.png",
+    foreground:
+      "./Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Background parts/1 - Foreground_scenery.png",
   },
-  terrainPath: "./Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Terrain (16 x 16).png",
+  terrainPath:
+    "./Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Terrain (16 x 16).png",
   name: "Grassland",
 };
 
@@ -47,7 +53,10 @@ const cloudCover1_2 = new Sprite({ position: { x: 288, y: 0 }, imageSrc: "" });
 const cloudCover2 = new Sprite({ position: { x: 0, y: 0 }, imageSrc: "" });
 const cloudCover2_2 = new Sprite({ position: { x: 288, y: 0 }, imageSrc: "" });
 const distantHills = new Sprite({ position: { x: 0, y: 0 }, imageSrc: "" });
-const foregroundScenery = new Sprite({ position: { x: 0, y: 0 }, imageSrc: "" });
+const foregroundScenery = new Sprite({
+  position: { x: 0, y: 0 },
+  imageSrc: "",
+});
 
 // Ordem de desenho do Parallax (da mais distante para a mais próxima)
 const backgroundLayers = [
@@ -63,27 +72,34 @@ const backgroundLayers = [
 // --- ASSETS DO JOGO (Tilesets) ---
 const terrainImage = new Image();
 let terrainLoaded = false;
-terrainImage.onload = () => { terrainLoaded = true; }; 
+terrainImage.onload = () => {
+  terrainLoaded = true;
+};
 
 const waterImage = new Image();
-waterImage.src = "./Seasonal Tilesets/Seasonal Tilesets/5 - Misc. universal tiles/Water_frames (16 x 32).png";
+waterImage.src =
+  "./Seasonal Tilesets/Seasonal Tilesets/5 - Misc. universal tiles/Water_frames (16 x 32).png";
 let waterLoaded = false;
-waterImage.onload = () => { waterLoaded = true; };
+waterImage.onload = () => {
+  waterLoaded = true;
+};
 
 // Entidades (Mantidas para compatibilidade com a classe Platform)
 const entityImage = new Image();
-entityImage.src = "./Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Grassland_entities (16 x 16).png";
+entityImage.src =
+  "./Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Grassland_entities (16 x 16).png";
 
 const extraPlantsImage = new Image();
-extraPlantsImage.src = "./Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Extra_plants (16 x 16).png";
+extraPlantsImage.src =
+  "./Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Extra_plants (16 x 16).png";
 
 // --- OBJETOS DO JOGO (Arrays de Entidades) ---
 const player = new Player();
 const enemies = [];
-const platforms = []; 
-const solidPlatforms = []; 
+const platforms = [];
+const solidPlatforms = [];
 
-let lastTime; 
+let lastTime;
 
 // --- FUNÇÕES DE NÍVEL E CONTEÚDO ---
 
@@ -93,13 +109,13 @@ let lastTime;
  */
 function generateChunkContent(levelIndex, chunkIndex, startX) {
   // Configurações básicas para o chão
-  const groundCropbox = { x: 149, y: 123, width: 17, height: 19 }; 
+  const groundCropbox = { x: 149, y: 123, width: 17, height: 19 };
   const numGroundTiles = 20;
   const tileSpacing = 15.4;
   const groundY = 190;
-  
+
   // Condição para criar o buraco do lago (Apenas no PRIMEIRO CHUNK DO NÍVEL 1)
-  const hasWaterGap = (levelIndex === 1 && totalChunkIndex === 0);
+  const hasWaterGap = levelIndex === 1 && totalChunkIndex === 0;
   const gapStartTile = 15;
   const gapEndTile = 17;
 
@@ -110,7 +126,7 @@ function generateChunkContent(levelIndex, chunkIndex, startX) {
     // Cria o bloco básico do chão
     platforms.push(
       new Platform({
-        position: { x: startX + tileSpacing * i, y: groundY }, 
+        position: { x: startX + tileSpacing * i, y: groundY },
         image: terrainImage,
         cropbox: groundCropbox,
       })
@@ -126,23 +142,30 @@ function generateChunkContent(levelIndex, chunkIndex, startX) {
 function switchBackgrounds(levelIndex) {
   if (levelIndex > TOTAL_LEVELS) {
     console.log("FIM DO JOGO!");
-    return; 
+    return;
   }
 
-  const themeData = LEVEL_CYCLE[levelIndex - 1]; 
-  
+  const themeData = LEVEL_CYCLE[levelIndex - 1];
+
   // 1. Troca o Tileset do Chão
-  terrainLoaded = false; 
-  terrainImage.src = themeData.terrainPath; 
+  terrainLoaded = false;
+  terrainImage.src = themeData.terrainPath;
 
   // 2. Troca as imagens de Parallax (e reseta o 'loaded' para forçar o recarregamento)
-  skyColor.loaded = false;      skyColor.image.src = themeData.bgPaths.skyColor;
-  cloudCover1.loaded = false;   cloudCover1.image.src = themeData.bgPaths.cloud1;
-  cloudCover1_2.loaded = false; cloudCover1_2.image.src = themeData.bgPaths.cloud1;
-  cloudCover2.loaded = false;   cloudCover2.image.src = themeData.bgPaths.cloud2;
-  cloudCover2_2.loaded = false; cloudCover2_2.image.src = themeData.bgPaths.cloud2;
-  distantHills.loaded = false;  distantHills.image.src = themeData.bgPaths.hills;
-  foregroundScenery.loaded = false; foregroundScenery.image.src = themeData.bgPaths.foreground;
+  skyColor.loaded = false;
+  skyColor.image.src = themeData.bgPaths.skyColor;
+  cloudCover1.loaded = false;
+  cloudCover1.image.src = themeData.bgPaths.cloud1;
+  cloudCover1_2.loaded = false;
+  cloudCover1_2.image.src = themeData.bgPaths.cloud1;
+  cloudCover2.loaded = false;
+  cloudCover2.image.src = themeData.bgPaths.cloud2;
+  cloudCover2_2.loaded = false;
+  cloudCover2_2.image.src = themeData.bgPaths.cloud2;
+  distantHills.loaded = false;
+  distantHills.image.src = themeData.bgPaths.hills;
+  foregroundScenery.loaded = false;
+  foregroundScenery.image.src = themeData.bgPaths.foreground;
 
   console.log(`Iniciando Nível ${levelIndex}: ${themeData.name}`);
 }
@@ -153,12 +176,12 @@ function switchBackgrounds(levelIndex) {
 function buildNewChunk() {
   // CRITICAL FIX: Garante que a geração para se atingir o limite total de chunks
   if (totalChunkIndex >= TOTAL_LEVELS * CHUNKS_PER_LEVEL) return;
-  
+
   // Adiciona o conteúdo ao novo chunk
   const startX = worldBuildLimit;
   const chunkIndex = totalChunkIndex % CHUNKS_PER_LEVEL;
   generateChunkContent(currentLevel, chunkIndex, startX);
-  
+
   // Atualiza a posição inicial para o próximo chunk
   worldBuildLimit += CHUNK_WIDTH;
   totalChunkIndex++;
@@ -166,7 +189,7 @@ function buildNewChunk() {
   // Verifica se é hora de avançar para o próximo nível
   if (currentLevel < TOTAL_LEVELS && totalChunkIndex % CHUNKS_PER_LEVEL === 0) {
     currentLevel++;
-    switchBackgrounds(currentLevel); 
+    switchBackgrounds(currentLevel);
   }
 }
 
@@ -177,12 +200,17 @@ waterImage.onload = () => {
   waterLoaded = true;
 
   // Adiciona o lago na posição do buraco.
-  const waterCropbox = { x: 0, y: 2, width: waterImage.width, height: waterImage.height };
+  const waterCropbox = {
+    x: 0,
+    y: 2,
+    width: waterImage.width,
+    height: waterImage.height,
+  };
   const lakeY = 190;
   const gapStartTile = 15;
-  const tileSpacing = 15.4; 
+  const tileSpacing = 15.4;
   const lakeX = tileSpacing * gapStartTile;
-  
+
   platforms.push(
     new Platform({
       position: { x: lakeX, y: lakeY },
@@ -190,10 +218,10 @@ waterImage.onload = () => {
       cropbox: waterCropbox,
     })
   );
-  
+
   // Inicializa nível 1 e constrói 3 chunks iniciais
   switchBackgrounds(1);
-  buildNewChunk(); 
+  buildNewChunk();
   buildNewChunk();
   buildNewChunk();
 
@@ -204,17 +232,22 @@ waterImage.onload = () => {
 
   // patrulha do “corredor” entre a plataforma e o lago no primeiro chunk
   const patrolStartX = 148;
-  const patrolEndX   = 231; // ~ início do lago (15 * 15.4)
+  const patrolEndX = 231; // ~ início do lago (15 * 15.4)
 
   // posições iniciais
-  const cerejinhaX  = 150;
+  const cerejinhaX = 150;
   const astroX = 185;
 
-  const cerejinha  = new Cerejinha({ x: cerejinhaX,  y: spawnY, patrolStartX, patrolEndX });
-  const astro = new Astro({      x: astroX, y: spawnY, patrolStartX, patrolEndX });
+  const cerejinha = new Cerejinha({
+    x: cerejinhaX,
+    y: spawnY,
+    patrolStartX,
+    patrolEndX,
+  });
+  const astro = new Astro({ x: astroX, y: spawnY, patrolStartX, patrolEndX });
   enemies.push(cerejinha, astro);
 
-  console.log('Enemies spawned:', enemies.length);
+  console.log("Enemies spawned:", enemies.length);
 };
 
 // --- OBJETO CÂMERA ---
@@ -227,13 +260,13 @@ function animate() {
   window.requestAnimationFrame(animate);
 
   // [BLOCO DE CARREGAMENTO SEGURO] Garante que todos os assets do nível atual carregaram
-  const allBackgroundsLoaded = backgroundLayers.every(layer => layer.loaded);
-  
+  const allBackgroundsLoaded = backgroundLayers.every((layer) => layer.loaded);
+
   if (!terrainLoaded || !waterLoaded || !allBackgroundsLoaded) {
     context.fillStyle = "black";
     context.fillRect(0, 0, canvas.width, canvas.height);
-    context.font = '16px Arial';
-    context.fillStyle = 'white';
+    context.font = "16px Arial";
+    context.fillStyle = "white";
     context.fillText("CARREGANDO NÍVEL...", 450, 280);
     return;
   }
@@ -246,34 +279,45 @@ function animate() {
   context.scale(scaleFactor, scaleFactor);
 
   // --- ATUALIZAÇÃO DO JOGADOR ---
-  const input = { left: keys.a.pressed, right: keys.d.pressed, jump: keys.w.pressed };
-  const worldWidth = worldBuildLimit; 
+  const input = {
+    left: keys.a.pressed,
+    right: keys.d.pressed,
+    jump: keys.w.pressed,
+  };
+  const worldWidth = worldBuildLimit;
   const worldHeight = foregroundScenery.height;
 
   // Cálculo do DeltaTime
   const currentTime = performance.now();
-  const deltaTime = (currentTime - (lastTime || currentTime)) / 1000; 
+  const deltaTime = (currentTime - (lastTime || currentTime)) / 1000;
   lastTime = currentTime;
 
-  if (keys.space.pressed) player.attack();
-  if (keys.r.pressed) player.reload();
-  player.update(worldHeight, worldWidth, platforms, solidPlatforms, input);
+  if (keys.mouseLeft.pressed) player.attack();
+  player.update(worldHeight, worldWidth, platforms, solidPlatforms, {
+    left: keys.a.pressed,
+    right: keys.d.pressed,
+    jump: keys.w.pressed,
+    attack: keys.mouseLeft.pressed,
+  });
 
   // --- LÓGICA DE MUNDO E RECICLAGEM ---
 
   // [BLOCO DE GERAÇÃO] Constrói um novo chunk se o jogador se aproximar do limite
-  if (totalChunkIndex < TOTAL_LEVELS * CHUNKS_PER_LEVEL && player.position.x + scaledCanvas.width > worldBuildLimit - CHUNK_WIDTH) {
-      buildNewChunk();
+  if (
+    totalChunkIndex < TOTAL_LEVELS * CHUNKS_PER_LEVEL &&
+    player.position.x + scaledCanvas.width > worldBuildLimit - CHUNK_WIDTH
+  ) {
+    buildNewChunk();
   }
-  
+
   // [BLOCO DE RECICLAGEM] Remove plataformas que saíram da área de jogo
-  const recycleThreshold = player.position.x - (CHUNK_WIDTH * 2);
+  const recycleThreshold = player.position.x - CHUNK_WIDTH * 2;
 
   for (let i = platforms.length - 1; i >= 0; i--) {
-      const platform = platforms[i];
-      if (platform.position.x + platform.width < recycleThreshold) {
-          platforms.splice(i, 1); 
-      }
+    const platform = platforms[i];
+    if (platform.position.x + platform.width < recycleThreshold) {
+      platforms.splice(i, 1);
+    }
   }
 
   // [ATUALIZAÇÃO DE INIMIGOS]
@@ -284,10 +328,13 @@ function animate() {
   // --- CÂMERA: POSICIONAMENTO E LIMITES ---
   camera.position.x = -player.position.x + scaledCanvas.width / 2;
   camera.position.y = -player.position.y + scaledCanvas.height / 2;
-  
+
   // Limites da Câmera
   if (camera.position.x > 0) camera.position.x = 0;
-  if (worldWidth > scaledCanvas.width && camera.position.x < -(worldWidth - scaledCanvas.width)) {
+  if (
+    worldWidth > scaledCanvas.width &&
+    camera.position.x < -(worldWidth - scaledCanvas.width)
+  ) {
     camera.position.x = -(worldWidth - scaledCanvas.width);
   }
   if (camera.position.y > 0) camera.position.y = 0;
@@ -295,12 +342,15 @@ function animate() {
     camera.position.y = -(worldHeight - scaledCanvas.height);
 
   // --- DESENHO: EFEITO PARALLAX ---
-  const layerParallaxFactors = [0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.8]; 
+  const layerParallaxFactors = [0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.8];
   let layerIndex = 0;
-  
+
   // 1. Céu
   context.save();
-  context.translate(camera.position.x * layerParallaxFactors[layerIndex++], camera.position.y * layerParallaxFactors[layerIndex]);
+  context.translate(
+    camera.position.x * layerParallaxFactors[layerIndex++],
+    camera.position.y * layerParallaxFactors[layerIndex]
+  );
   skyColor.draw(context);
   context.restore();
 
@@ -308,22 +358,26 @@ function animate() {
   const layerWidth = 288;
   cloudCover1.position.x -= CLOUD_SPEED_1 * deltaTime;
   cloudCover1_2.position.x -= CLOUD_SPEED_1 * deltaTime;
-  if (cloudCover1.position.x < -layerWidth) cloudCover1.position.x += layerWidth * 2;
-  if (cloudCover1_2.position.x < -layerWidth) cloudCover1_2.position.x += layerWidth * 2;
+  if (cloudCover1.position.x < -layerWidth)
+    cloudCover1.position.x += layerWidth * 2;
+  if (cloudCover1_2.position.x < -layerWidth)
+    cloudCover1_2.position.x += layerWidth * 2;
   cloudCover2.position.x -= CLOUD_SPEED_2 * deltaTime;
   cloudCover2_2.position.x -= CLOUD_SPEED_2 * deltaTime;
-  if (cloudCover2.position.x < -layerWidth) cloudCover2.position.x += layerWidth * 2;
-  if (cloudCover2_2.position.x < -layerWidth) cloudCover2_2.position.x += layerWidth * 2;
+  if (cloudCover2.position.x < -layerWidth)
+    cloudCover2.position.x += layerWidth * 2;
+  if (cloudCover2_2.position.x < -layerWidth)
+    cloudCover2_2.position.x += layerWidth * 2;
 
   // Desenha as 4 camadas de nuvens
   for (let i = 0; i < 4; i++) {
     const layer = backgroundLayers[layerIndex + i];
     context.save();
-    context.translate(layer.position.x, layer.position.y); 
+    context.translate(layer.position.x, layer.position.y);
     layer.draw(context);
     context.restore();
   }
-  layerIndex += 4; 
+  layerIndex += 4;
 
   // 3. Hills e Foreground (parallax com a câmera)
   for (let i = 0; i < 2; i++) {
@@ -356,9 +410,11 @@ function animate() {
   player.draw(context);
 
   // HUD
-  context.font = '8px Arial';
-  context.fillStyle = 'white';
-  const levelText = `NÍVEL: ${currentLevel} / ${TOTAL_LEVELS} - ${LEVEL_CYCLE[currentLevel - 1].name}`;
+  context.font = "8px Arial";
+  context.fillStyle = "white";
+  const levelText = `NÍVEL: ${currentLevel} / ${TOTAL_LEVELS} - ${
+    LEVEL_CYCLE[currentLevel - 1].name
+  }`;
   context.fillText(levelText, -camera.position.x + 10, -camera.position.y + 10);
 
   context.restore();

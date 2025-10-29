@@ -362,9 +362,14 @@ class Player {
     if (this.cooldown > 0) this.cooldown--;
 
     // Atualiza e desenha as flechas
-    for (const arrow of this.projectiles) {
+    for (let i = this.projectiles.length - 1; i >= 0; i--) {
+      const arrow = this.projectiles[i];
       arrow.update();
-      arrow.draw(context);
+      if (arrow.position.x < 0 || arrow.position.x > worldWidth) {
+        this.projectiles.splice(i, 1); // remove flechas fora da tela
+      } else {
+        arrow.draw(context);
+      }
     }
 
     this.animate();

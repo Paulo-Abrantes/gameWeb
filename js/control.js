@@ -2,8 +2,7 @@ const keys = {
   a: { pressed: false },
   d: { pressed: false },
   w: { pressed: false },
-  space: { pressed: false }, // ataque
-  r: { pressed: false }, // recarregar
+  mouseLeft: { pressed: false },
 };
 
 window.addEventListener("keydown", (event) => {
@@ -16,12 +15,6 @@ window.addEventListener("keydown", (event) => {
       break;
     case "w":
       keys.w.pressed = true;
-      break;
-    case " ":
-      keys.space.pressed = true;
-      break;
-    case "r":
-      keys.r.pressed = true;
       break;
   }
 });
@@ -37,11 +30,18 @@ window.addEventListener("keyup", (event) => {
     case "w":
       keys.w.pressed = false;
       break;
-    case " ":
-      keys.space.pressed = false;
-      break;
-    case "r":
-      keys.r.pressed = false;
-      break;
+  }
+});
+
+window.addEventListener("mousedown", (event) => {
+  if (event.button === 0) {
+    // botão esquerdo do mouse
+    keys.mouseLeft.pressed = true;
+  }
+});
+
+window.addEventListener("mouseup", (event) => {
+  if (event.button === 0) {
+    keys.mouseLeft.pressed = false;
   }
 });
