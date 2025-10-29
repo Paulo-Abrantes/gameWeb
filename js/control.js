@@ -1,39 +1,47 @@
-const keys = {                 //so os controles de A, S, D, W
-    a: { pressed: false },
-    d: { pressed: false },
-    w: { pressed: false }
+const keys = {
+  a: { pressed: false },
+  d: { pressed: false },
+  w: { pressed: false },
+  space: { pressed: false }, // ataque
+  r: { pressed: false }, // recarregar
 };
 
-window.addEventListener('keydown', (event) => {
-    switch (event.key) {
-        case 'a':
-        // case ' ': aqui e para ser as setas
-            keys.a.pressed = true;
-            break;
-        case 'd':
-        // case ' ': aqui e para ser as setas
-            keys.d.pressed = true;
-            break;
-        case 'w':
-        // case ' ': aqui e para ser as setas
-            keys.w.pressed = true;
-            break;
-    }
+window.addEventListener("keydown", (event) => {
+  switch (event.key) {
+    case "a":
+      keys.a.pressed = true;
+      break;
+    case "d":
+      keys.d.pressed = true;
+      break;
+    case "w":
+      keys.w.pressed = true;
+      break;
+    case " ":
+      keys.space.pressed = true;
+      break;
+    case "r":
+      keys.r.pressed = true;
+      break;
+  }
 });
 
-window.addEventListener('keyup', (event) => {
-    switch (event.key) {
-        case 'a':
-        // case ' ': aqui e para ser as setas
-            keys.a.pressed = false;
-            break;
-        case 'd':
-        // case ' ': aqui e para ser as setas
-            keys.d.pressed = false;
-            break;
-        case 'w':
-        // case ' ': aqui e para ser as setas
-            keys.w.pressed = false;
-            break;
-    }
+window.addEventListener("keyup", (event) => {
+  switch (event.key) {
+    case "a":
+      keys.a.pressed = false;
+      break;
+    case "d":
+      keys.d.pressed = false;
+      break;
+    case "w":
+      keys.w.pressed = false;
+      break;
+    case " ":
+      keys.space.pressed = false;
+      break;
+    case "r":
+      keys.r.pressed = false;
+      break;
+  }
 });
