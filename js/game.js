@@ -208,11 +208,11 @@ waterImage.onload = () => {
 
   // posições iniciais
   const barryX  = 150;
-  const toggleX = 185;
+  const astroX = 185;
 
   const barry  = new BarryCherry({ x: barryX,  y: spawnY, patrolStartX, patrolEndX });
-  const toggle = new Toggle({      x: toggleX, y: spawnY, patrolStartX, patrolEndX });
-  enemies.push(barry, toggle);
+  const astro = new Astro({      x: astroX, y: spawnY, patrolStartX, patrolEndX });
+  enemies.push(barry, astro);
 
   console.log('Enemies spawned:', enemies.length);
 };
