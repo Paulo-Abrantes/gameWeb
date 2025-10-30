@@ -1,9 +1,10 @@
+// (Arquivo: gameWeb/js/sprites.js)
+
 const globalArrowImage = new Image();
 globalArrowImage.src =
   "./Sprite Pack 8/2 - Tracy/Arrow_Projectile (16 x 16).png";
 
-// FUNÇÕES DE COLISÃO
-// Detecta colisão completa (todos os lados)
+// FUNCOES DE COLISAO
 function collision({ object1, object2 }) {
   return (
     object1.position.y + object1.height >= object2.position.y &&
@@ -13,7 +14,6 @@ function collision({ object1, object2 }) {
   );
 }
 
-// Detecta colisão apenas quando o jogador cai sobre uma plataforma
 function platformCollision({ object1, object2 }) {
   return (
     object1.position.y + object1.height >= object2.position.y &&
@@ -24,7 +24,7 @@ function platformCollision({ object1, object2 }) {
   );
 }
 
-// Classe que representa o fundo (background)
+// Classe base
 class Sprite {
   constructor({ position, imageSrc }) {
     this.position = position;
@@ -40,7 +40,6 @@ class Sprite {
     this.height = 0;
   }
 
-  // Desenha a imagem de fundo no canvas
   draw(context) {
     if (this.image) {
       context.drawImage(this.image, this.position.x, this.position.y);
@@ -48,7 +47,7 @@ class Sprite {
   }
 }
 
-// Classe que representa uma plataforma (chão ou bloco)
+// Classe plataforma
 class Platform {
   constructor({ position, image, cropbox }) {
     this.position = position;
@@ -58,7 +57,6 @@ class Platform {
     this.cropbox = cropbox;
   }
 
-  // Desenha a plataforma no lugar certo, cortando a parte certa do tileset
   draw(context) {
     if (this.image && this.image.complete) {
       context.drawImage(
@@ -76,8 +74,7 @@ class Platform {
   }
 }
 
-// --- CLASSE PLAYER ---
-// Essa é a parte mais importante: controla o jogador e suas colisões
+// --- CLASSE PLAYER (MODIFICADA COM VIDAS) ---
 class Player {
   constructor() {
     this.position = { x: 100, y: 100 };
@@ -86,7 +83,15 @@ class Player {
     this.height = 16;
     this.isOnGround = false;
     this.gravity = 0.5;
-    this.direction = 1; // 1 = direita | -1 = esquerda
+    this.direction = 1; 
+
+    // Vidas e Dano
+    this.lives = 3;
+    this.isDead = false;
+    this.deathAnimationSpawned = false; 
+    this.isInvincible = false;
+    this.invincibilityTimer = 0;
+    this.invincibilityDuration = 100; 
 
     this.animations = {
       idle: {
@@ -103,51 +108,34 @@ class Player {
         src: "./Sprite Pack 8/2 - Tracy/Standing_Crossbow_Shot (32 x 32).png",
         frames: 4,
       },
+      hurt: { 
+        src: "./Sprite Pack 8/2 - Tracy/Hurt (32 x 32).png",
+        frames: 1,
+        interval: 100, 
+      },
     };
 
     this.currentState = "idle";
     this.frameX = 0;
     this.frameTimer = 0;
     this.frameInterval = 10;
-    this.image = new Image();
-    this.image.src = this.animations[this.currentState].src;
-    this.maxFrames = this.animations[this.currentState].frames;
+    
     this.frameWidth = 32;
     this.frameHeight = 32;
 
-    this.cooldown = 0; // tempo entre disparos
-    this.projectiles = []; // flechas ativas
+    this.cooldown = 0; 
+    this.projectiles = []; 
 
+    // Pre-carrega imagens
     this.images = {};
-    this.frameWidth = 32;
-    this.frameHeight = 32;
-
     for (let state in this.animations) {
       const animation = this.animations[state];
       this.images[state] = new Image();
       this.images[state].src = animation.src;
     }
-
     this.currentImage = this.images.idle;
     this.maxFrames = this.animations.idle.frames;
-    this.frameX = 0;
-    this.frameTimer = 0;
-    this.frameInterval = 10;
 
-    /* //carrega o sprite do player
-    this.image = new Image();
-    this.image.src = "./Sprite Pack 8/2 - Tracy/Idle_1 (32 x 32).png";
-
-    //animação
-    this.frameX = 0;
-    this.frameY = 0;
-    this.maxFrames = 5;
-    this.frameWidth = 32;
-    this.frameHeight = 32;
-    this.frameTimer = 0;
-    this.frameInterval = 10; */
-
-    // A hitbox é a "caixa" que detecta colisões do jogador
     this.hitbox = {
       position: this.position,
       width: this.width,
@@ -156,36 +144,62 @@ class Player {
   }
 
   switchState(state) {
-    if (this.currentState !== state) {
-      this.currentState = state;
+    if (this.currentState === state) return;
+    
+    this.currentState = state;
+    this.currentImage = this.images[state];
+    if (!this.currentImage) {
+      console.error(`Imagem nao encontrada: ${state}`);
+      this.currentImage = this.images.idle; 
+    }
 
-      this.currentImage = this.images[state]; // Usa a imagem pré-carregada
-      if (!this.currentImage) {
-        console.error(`Imagem não encontrada para o estado: ${state}`);
-        this.currentImage = this.images.idle; // Garante que não quebre
-      }
+    this.maxFrames = this.animations[state].frames;
+    this.frameX = 0;
+    this.frameTimer = 0;
 
-      this.maxFrames = this.animations[state].frames;
-      this.frameX = 0;
-      this.frameTimer = 0;
-
-      // pega o intervalo de frames da animação, se definido
-      if (this.animations[state].interval) {
-        this.frameInterval = this.animations[state].interval / 10; // Ajuste se necessário
-      } else {
-        this.frameInterval = 10; // Padrão
-      }
+    
+    if (this.animations[state].interval) {
+      this.frameInterval = this.animations[state].interval / 10; // Ajuste
+    } else {
+      this.frameInterval = 10; 
     }
   }
 
-  // aplica gravidade
   applyGravity() {
     this.velocity.y += this.gravity;
     this.position.y += this.velocity.y;
   }
 
+  //  tomar dano
+  takeDamage() {
+    if (this.isInvincible || this.isDead) return;
+
+    this.isInvincible = true;
+    this.invincibilityTimer = this.invincibilityDuration;
+    this.lives--;
+    
+    console.log("VIDAS RESTANTES: " + this.lives);
+
+    if (this.lives <= 0) {
+      this.die();
+    } else {
+      this.switchState('hurt');
+      this.velocity.y = -5; 
+      this.isOnGround = false;
+    }
+  }
+
+  // Logica de morrer
+  die() {
+    this.isDead = true;
+    this.velocity.x = 0;
+    this.velocity.y = 0;
+    // O player vai ser escondido no 'draw'
+  }
+
   move(input) {
-    if (this.currentState === "attack") {
+    // Nao se move se estiver morto, tomando dano, ou atacando
+    if (this.currentState === "attack" || this.currentState === "hurt" || this.isDead) {
       this.velocity.x = 0;
       return;
     }
@@ -199,12 +213,12 @@ class Player {
       this.direction = 1;
     }
 
-    //movimento vertical
     if (input.jump && this.isOnGround) {
       this.velocity.y = -8;
       this.isOnGround = false;
     }
-    // Atualiza estado de animação conforme o movimento
+    
+    // Animacao de movimento
     if (!this.isOnGround) {
       if (this.velocity.y < 0) this.switchState("jump");
       else this.switchState("fall");
@@ -216,23 +230,21 @@ class Player {
   }
 
   attack() {
-    if (this.cooldown > 0) return; // impede spam
+    if (this.cooldown > 0 || this.currentState === 'hurt' || this.isDead) return;
     this.switchState("attack");
-    this.cooldown = 50; // frames de espera antes de poder atacar de novo
+    this.cooldown = 50; 
 
-    // Cria flecha
     const arrow = new Projectile({
       position: {
         x: this.position.x + (this.direction === 1 ? this.width : -10),
         y: this.position.y + this.height / 2 - 4,
       },
       direction: this.direction,
-      image: globalArrowImage,
+      image: globalArrowImage, 
     });
     this.projectiles.push(arrow);
   }
 
-  // atualiza a hitbox do jogador
   updateHitbox() {
     this.hitbox = {
       position: this.position,
@@ -244,11 +256,16 @@ class Player {
   animate() {
     this.frameTimer++;
     if (this.frameTimer >= this.frameInterval) {
-      if (
-        this.currentState === "attack" &&
-        this.frameX === this.maxFrames - 1
-      ) {
+      
+      if (this.currentState === "attack" && this.frameX === this.maxFrames - 1) {
         this.switchState("idle");
+      } 
+      
+      else if (this.currentState === 'hurt' && this.frameX === this.maxFrames - 1) {
+          
+          if(this.frameTimer > 30) { 
+             this.switchState('idle');
+          }
       }
 
       this.frameX = (this.frameX + 1) % this.maxFrames;
@@ -257,53 +274,53 @@ class Player {
   }
 
   draw(context) {
+    // nao desenha se morreu
+    if (this.isDead) return;
+    
     const flip = this.direction === -1;
 
     context.save();
+    
+    
+    if (this.isInvincible) {
+      
+      if (Math.floor(this.invincibilityTimer / 4) % 2 === 0) {
+         context.globalAlpha = 0.5;
+      }
+    }
+    
     if (flip) {
       context.scale(-1, 1);
       context.drawImage(
         this.currentImage,
-        this.frameX * this.frameWidth,
-        0,
-        this.frameWidth,
-        this.frameHeight,
-        -this.position.x - this.width,
-        this.position.y,
-        this.width,
-        this.height
+        this.frameX * this.frameWidth, 0,
+        this.frameWidth, this.frameHeight,
+        -this.position.x - this.width, this.position.y,
+        this.width, this.height
       );
     } else {
       context.drawImage(
         this.currentImage,
-        this.frameX * this.frameWidth,
-        0,
-        this.frameWidth,
-        this.frameHeight,
-        this.position.x,
-        this.position.y,
-        this.width,
-        this.height
+        this.frameX * this.frameWidth, 0,
+        this.frameWidth, this.frameHeight,
+        this.position.x, this.position.y,
+        this.width, this.height
       );
     }
-    context.restore();
+    context.restore(); 
   }
 
-  // --- LÓGICA DE COLISÃO HORIZONTAL ---
-  // Impede o jogador de atravessar blocos sólidos pelos lados
+  // colisao horizontal
   checkForHorizontalCollisions({ solidPlatforms = [] }) {
     for (let i = 0; i < solidPlatforms.length; i++) {
       const platform = solidPlatforms[i];
-
       if (collision({ object1: this.hitbox, object2: platform })) {
         if (this.velocity.x > 0) {
-          // indo pra direita
           this.velocity.x = 0;
           this.position.x = platform.position.x - this.hitbox.width - 0.01;
           break;
         }
         if (this.velocity.x < 0) {
-          // indo pra esquerda
           this.velocity.x = 0;
           this.position.x = platform.position.x + platform.width + 0.01;
           break;
@@ -312,46 +329,30 @@ class Player {
     }
   }
 
-  // --- LÓGICA DE COLISÃO VERTICAL ---
-  // Detecta quando o jogador cai em cima ou bate a cabeça
-  checkForVerticalCollisions({
-    worldHeight,
-    platforms = [],
-    solidPlatforms = [],
-  }) {
-    this.isOnGround = false; // assume que o jogador está no ar
-
-    // Primeiro verifica blocos sólidos (colidem em todos os lados)
+  // Colisao vertical
+  checkForVerticalCollisions({ worldHeight, platforms = [], solidPlatforms = [] }) {
+    this.isOnGround = false;
     for (let i = 0; i < solidPlatforms.length; i++) {
       const platform = solidPlatforms[i];
-
       if (collision({ object1: this.hitbox, object2: platform })) {
         if (this.velocity.y > 0) {
-          // caindo
           this.velocity.y = 0;
           this.position.y = platform.position.y - this.hitbox.height - 0.01;
           this.isOnGround = true;
           break;
         }
         if (this.velocity.y < 0) {
-          // batendo a cabeça
           this.velocity.y = 0;
           this.position.y = platform.position.y + platform.height + 0.01;
           break;
         }
       }
     }
-
-    // Se já aterrissou, não precisa checar mais nada
     if (this.isOnGround) return;
-
-    // Depois verifica as plataformas normais (colidem só por cima)
     for (let i = 0; i < platforms.length; i++) {
       const platform = platforms[i];
-
       if (platformCollision({ object1: this.hitbox, object2: platform })) {
         if (this.velocity.y > 0) {
-          // caindo em cima
           this.velocity.y = 0;
           this.position.y = platform.position.y - this.hitbox.height - 0.01;
           this.isOnGround = true;
@@ -359,8 +360,6 @@ class Player {
         }
       }
     }
-
-    // Se não achou nenhuma plataforma, verifica o "chão" do mundo
     if (!this.isOnGround && this.position.y + this.height >= worldHeight) {
       this.velocity.y = 0;
       this.position.y = worldHeight - this.height;
@@ -368,41 +367,49 @@ class Player {
     }
   }
 
-  // --- FUNÇÃO PRINCIPAL DE ATUALIZAÇÃO ---
-  // Essa função roda a cada frame e controla todo o comportamento do jogador
+  // Funcao principal de atualizacao
   update(worldHeight, worldWidth, platforms = [], solidPlatforms = [], input) {
-    this.updateHitbox(); // <-- ADICIONE ESTA LINHA
+    
+    if (this.isDead) {
+         return;
+    }
 
-    // movimentação e física
-    this.move(input);
-    this.position.x += this.velocity.x;
-    this.applyGravity();
-    this.isOnGround = false;
-
-    // colisões básicas
-    for (const platform of [...platforms, ...solidPlatforms]) {
-      if (
-        this.position.y + this.height >= platform.position.y &&
-        this.position.y + this.height <=
-          platform.position.y + platform.height &&
-        this.position.x + this.width >= platform.position.x &&
-        this.position.x <= platform.position.x + platform.width &&
-        this.velocity.y >= 0
-      ) {
-        this.position.y = platform.position.y - this.height;
-        this.velocity.y = 0;
-        this.isOnGround = true;
+    
+    if (this.isInvincible) {
+      this.invincibilityTimer--;
+      if (this.invincibilityTimer <= 0) {
+        this.isInvincible = false;
+        
+        if (this.currentState === 'hurt') {
+            this.switchState('idle');
+        }
       }
     }
 
+    this.updateHitbox(); 
+    this.move(input);
+    
+    
+    if (this.currentState !== 'hurt') {
+         this.position.x += this.velocity.x;
+    }
+    
+    this.applyGravity();
+    this.isOnGround = false; 
+
+    
+    this.checkForHorizontalCollisions({ solidPlatforms });
+    this.checkForVerticalCollisions({ worldHeight, platforms, solidPlatforms });
+
+    
     if (this.cooldown > 0) this.cooldown--;
 
-    // Atualiza e desenha as flechas
+    // at flechas
     for (let i = this.projectiles.length - 1; i >= 0; i--) {
       const arrow = this.projectiles[i];
       arrow.update();
       if (arrow.position.x < 0 || arrow.position.x > worldWidth) {
-        this.projectiles.splice(i, 1); // remove flechas fora da tela
+        this.projectiles.splice(i, 1);
       }
     }
 
@@ -411,6 +418,7 @@ class Player {
   }
 }
 
+
 class Projectile {
   constructor({ position, direction, image }) {
     this.position = position;
@@ -418,8 +426,7 @@ class Projectile {
     this.speed = 5 * direction;
     this.width = 16;
     this.height = 4;
-
-    this.image = image;
+    this.image = image; 
   }
 
   update() {
@@ -449,8 +456,8 @@ class Projectile {
     context.restore();
   }
 }
-// --- CLASSE PARA ANIMAÇÃO DE MORTE ---
-// Adicionada para lidar com a explosão dos inimigos
+
+// Classe de animacao de morte
 class DeathAnimation extends Sprite {
   constructor({
     position,
@@ -460,56 +467,48 @@ class DeathAnimation extends Sprite {
     totalFrames,
     frameInterval = 10,
   }) {
-    // Chama o construtor base do Sprite (que só define 'position' e 'imageSrc')
     super({ position, imageSrc });
 
-    // Carrega a imagem da animação
     this.image = new Image();
     this.image.onload = () => {
       this.loaded = true;
-      // Define a largura e altura baseadas no frame, não na imagem inteira
       this.width = frameWidth;
       this.height = frameHeight;
     };
     this.image.src = imageSrc;
 
-    // Controle de animação (baseado na lógica da classe Player neste mesmo arquivo)
     this.frameWidth = frameWidth;
     this.frameHeight = frameHeight;
-    this.maxFrames = totalFrames; // Total de frames na spritesheet
-    this.frameX = 0; // Frame atual
+    this.maxFrames = totalFrames;
+    this.frameX = 0;
     this.frameTimer = 0;
-    this.frameInterval = frameInterval; // Velocidade da animação
-
-    this.done = false; // Flag para saber se a animação terminou
+    this.frameInterval = frameInterval;
+    this.done = false;
   }
 
-  // Método de atualização (usa o timer interno, como a classe Player)
   update() {
     if (this.done || !this.loaded) return;
 
     this.frameTimer++;
     if (this.frameTimer >= this.frameInterval) {
-      this.frameX++; // Avança para o próximo frame
-
+      this.frameX++; 
       if (this.frameX >= this.maxFrames) {
-        this.done = true; // Marca a animação como concluída
-        this.frameX = this.maxFrames - 1; // Trava no último frame
+        this.done = true;
+        this.frameX = this.maxFrames - 1;
       }
       this.frameTimer = 0;
     }
   }
 
-  // Método de desenho
   draw(context) {
-    if (this.done || !this.loaded) return; // Não desenha se já terminou
+    if (this.done || !this.loaded) return;
 
     const frameX_coord = this.frameX * this.frameWidth;
 
     context.drawImage(
       this.image,
       frameX_coord,
-      0, // Assume que o spritesheet é uma faixa horizontal
+      0, 
       this.frameWidth,
       this.frameHeight,
       this.position.x,
@@ -520,15 +519,13 @@ class DeathAnimation extends Sprite {
   }
 }
 
+// Classe do projetil de semente
 class SeedProjectile {
   constructor({ position, direction }) {
     this.position = position;
-    this.direction = direction; // 1 = direita, -1 = esquerda
+    this.direction = direction; 
+    this.velocity = { x: 80 * this.direction, y: 0 }; 
 
-    // Velocidade (px por segundo)
-    this.velocity = { x: 80 * this.direction, y: 0 };
-
-    // Imagem e animação
     this.image = new Image();
     this.image.src = "./Sprite Pack 8/3 - Cebolete/Seed_Launch (8 x 8).png";
     this.loaded = false;
@@ -536,20 +533,17 @@ class SeedProjectile {
       this.loaded = true;
     };
 
-    // Dimensões
     this.width = 8;
     this.height = 8;
     this.frameWidth = 8;
     this.frameHeight = 8;
-    this.maxFrames = 2; // A imagem Seed_Launch tem 2 frames
+    this.maxFrames = 2; 
 
-    // Controle da animação
     this.currentFrame = 0;
     this.elapsedMs = 0;
-    this.frameInterval = 150; // ms (velocidade da rotação da semente)
+    this.frameInterval = 150; 
   }
 
-  // Anima a semente
   updateAnimation(dt) {
     if (!this.loaded) return;
 
@@ -560,30 +554,22 @@ class SeedProjectile {
     }
   }
 
-  // Move a semente
   update(dt) {
     this.updateAnimation(dt);
     this.position.x += this.velocity.x * dt;
   }
 
-  // Desenha a semente
   draw(context) {
     if (!this.loaded) return;
-
     const frameX = this.currentFrame * this.frameWidth;
-
-    // Usa o mesmo save/scale/restore do projétil da flecha
-    // para inverter a imagem se estiver indo para a esquerda.
+    
     context.save();
     if (this.direction === -1) {
       context.scale(-1, 1);
       context.drawImage(
         this.image,
-        frameX,
-        0,
-        this.frameWidth,
-        this.frameHeight,
-        -this.position.x - this.width, // Posição invertida
+        frameX, 0, this.frameWidth, this.frameHeight,
+        -this.position.x - this.width, 
         this.position.y,
         this.width,
         this.height
@@ -591,10 +577,7 @@ class SeedProjectile {
     } else {
       context.drawImage(
         this.image,
-        frameX,
-        0,
-        this.frameWidth,
-        this.frameHeight,
+        frameX, 0, this.frameWidth, this.frameHeight,
         this.position.x,
         this.position.y,
         this.width,

@@ -1,3 +1,5 @@
+// (Arquivo: gameWeb/js/astro.js)
+
 // movimentos/comportamento do inimigo astro
 const ASTRO_X_VELOCITY = 15;
 const ASTRO_GRAVITY = 60;
@@ -152,8 +154,8 @@ class Astro {
           this.activatePunchHitbox();
           
           if (this.attackHitbox.isActive && collision({ object1: this.attackHitbox, object2: player.hitbox })) {
-            console.log("ASTRO ATINGIU O JOGADOR!");
-            // (logica de dano ao player aqui)
+            // (MODIFICADO) Causa dano
+            player.takeDamage();
             this.attackHitbox.isActive = false; // desativa p/ nao dar hit duplo
           }
         } else {
@@ -268,7 +270,5 @@ class Astro {
       );
     }
     context.restore();
-
-    
   }
 }

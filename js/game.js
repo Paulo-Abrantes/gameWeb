@@ -1,29 +1,30 @@
+// (Arquivo: gameWeb/js/game.js)
+
 const canvas = document.querySelector("canvas");
 const context = canvas.getContext("2d");
 
-// --- CONFIGURAÇÃO INICIAL DO CANVAS ---
+// --- CONFIGURACAO INICIAL DO CANVAS ---
 canvas.width = 1024;
 canvas.height = 576;
 
-// Fator de escala para renderização (zoom 4x)
 const scaleFactor = 4;
 const scaledCanvas = {
   width: canvas.width / scaleFactor,
   height: canvas.height / scaleFactor,
 };
 
-// --- CONSTANTES DE JOGABILIDADE E GERAÇÃO DE MUNDO ---
-const CLOUD_SPEED_1 = 0.5; // Velocidade de rolagem das nuvens
-const CLOUD_SPEED_2 = 1.0; // Velocidade de rolagem das nuvens mais rápidas
+// --- CONSTANTES DE JOGABILIDADE E MUNDO ---
+const CLOUD_SPEED_1 = 0.5;
+const CLOUD_SPEED_2 = 1.0;
 
-const CHUNKS_PER_LEVEL = 4; // Cada nível dura 4 pedaços de mapa
-const CHUNK_WIDTH = 20 * 15.4; // Largura de cada pedaço do chão
+const CHUNKS_PER_LEVEL = 4;
+const CHUNK_WIDTH = 20 * 15.4; 
 
-let worldBuildLimit = 0; // A posição X onde o PRÓXIMO CHUNK deve ser construído
-let currentLevel = 1; // Nível atual em que o jogador se encontra
-let totalChunkIndex = 0; // Contador total de chunks já construídos
+let worldBuildLimit = 0; 
+let currentLevel = 1; 
+let totalChunkIndex = 0; 
 
-// --- DEFINIÇÃO DO TEMA (Grassland Único) ---
+// --- TEMA (Grassland) ---
 const GRASSLAND_THEME = {
   bgPaths: {
     skyColor:
@@ -42,11 +43,10 @@ const GRASSLAND_THEME = {
   name: "Grassland",
 };
 
-// Configuração dos Níveis (Total de 5 níveis, todos usando o Grassland)
 const TOTAL_LEVELS = 5;
 const LEVEL_CYCLE = Array(TOTAL_LEVELS).fill(GRASSLAND_THEME);
 
-// --- INICIALIZAÇÃO DE SPRITES GLOBAIS (Elementos do Parallax) ---
+// --- INICIALIZACAO SPRITES GLOBAIS (Parallax) ---
 const skyColor = new Sprite({ position: { x: 0, y: 0 }, imageSrc: "" });
 const cloudCover1 = new Sprite({ position: { x: 0, y: 0 }, imageSrc: "" });
 const cloudCover1_2 = new Sprite({ position: { x: 288, y: 0 }, imageSrc: "" });
@@ -58,7 +58,6 @@ const foregroundScenery = new Sprite({
   imageSrc: "",
 });
 
-// Ordem de desenho do Parallax (da mais distante para a mais próxima)
 const backgroundLayers = [
   skyColor,
   cloudCover1,
@@ -84,7 +83,6 @@ waterImage.onload = () => {
   waterLoaded = true;
 };
 
-// Entidades (Mantidas para compatibilidade com a classe Platform)
 const entityImage = new Image();
 entityImage.src =
   "./Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Grassland_entities (16 x 16).png";
@@ -93,38 +91,31 @@ const extraPlantsImage = new Image();
 extraPlantsImage.src =
   "./Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Extra_plants (16 x 16).png";
 
-// --- OBJETOS DO JOGO (Arrays de Entidades) ---
+// --- OBJETOS DO JOGO ---
 const player = new Player();
 const enemies = [];
 const platforms = [];
 const solidPlatforms = [];
-const sprites = [];
+const sprites = []; // Para animacoes (ex: morte)
 
 let lastTime;
 
-// --- FUNÇÕES DE NÍVEL E CONTEÚDO ---
+// --- FUNCOES DE NIVEL E CONTEUDO ---
 
-/**
- * [BLOCO DE CONTEÚDO] Adiciona as plataformas e objetos de colisão para o chunk atual.
- * ATUALMENTE: Cria APENAS O CHÃO LISO, com exceção do buraco do lago no primeiro chunk.
- */
 function generateChunkContent(levelIndex, chunkIndex, startX) {
-  // Configurações básicas para o chão
   const groundCropbox = { x: 149, y: 123, width: 17, height: 19 };
   const numGroundTiles = 20;
   const tileSpacing = 15.4;
   const groundY = 190;
 
-  // Condição para criar o buraco do lago (Apenas no PRIMEIRO CHUNK DO NÍVEL 1)
   const hasWaterGap = levelIndex === 1 && totalChunkIndex === 0;
   const gapStartTile = 15;
   const gapEndTile = 17;
 
   for (let i = 0; i < numGroundTiles; i++) {
     if (hasWaterGap && i >= gapStartTile && i < gapEndTile) {
-      continue; // Pula os tiles para criar o buraco do lago
+      continue; // Pula tiles p/ buraco
     }
-    // Cria o bloco básico do chão
     platforms.push(
       new Platform({
         position: { x: startX + tileSpacing * i, y: groundY },
@@ -133,13 +124,8 @@ function generateChunkContent(levelIndex, chunkIndex, startX) {
       })
     );
   }
-
-  // (Espaço reservado para inserir conteúdo por chunk/nível futuramente)
 }
 
-/**
- * [BLOCO DE TROCA DE TEMA] Troca dinamicamente as imagens de fundo para um novo nível.
- */
 function switchBackgrounds(levelIndex) {
   if (levelIndex > TOTAL_LEVELS) {
     console.log("FIM DO JOGO!");
@@ -148,11 +134,9 @@ function switchBackgrounds(levelIndex) {
 
   const themeData = LEVEL_CYCLE[levelIndex - 1];
 
-  // 1. Troca o Tileset do Chão
   terrainLoaded = false;
   terrainImage.src = themeData.terrainPath;
 
-  // 2. Troca as imagens de Parallax (e reseta o 'loaded' para forçar o recarregamento)
   skyColor.loaded = false;
   skyColor.image.src = themeData.bgPaths.skyColor;
   cloudCover1.loaded = false;
@@ -168,39 +152,30 @@ function switchBackgrounds(levelIndex) {
   foregroundScenery.loaded = false;
   foregroundScenery.image.src = themeData.bgPaths.foreground;
 
-  console.log(`Iniciando Nível ${levelIndex}: ${themeData.name}`);
+  console.log(`Iniciando Nivel ${levelIndex}: ${themeData.name}`);
 }
 
-/**
- * [BLOCO DE GERAÇÃO DE CHUNK] Cria um novo pedaço de mapa e gerencia a transição de nível.
- */
 function buildNewChunk() {
-  // CRITICAL FIX: Garante que a geração para se atingir o limite total de chunks
   if (totalChunkIndex >= TOTAL_LEVELS * CHUNKS_PER_LEVEL) return;
 
-  // Adiciona o conteúdo ao novo chunk
   const startX = worldBuildLimit;
   const chunkIndex = totalChunkIndex % CHUNKS_PER_LEVEL;
   generateChunkContent(currentLevel, chunkIndex, startX);
 
-  // Atualiza a posição inicial para o próximo chunk
   worldBuildLimit += CHUNK_WIDTH;
   totalChunkIndex++;
 
-  // Verifica se é hora de avançar para o próximo nível
   if (currentLevel < TOTAL_LEVELS && totalChunkIndex % CHUNKS_PER_LEVEL === 0) {
     currentLevel++;
     switchBackgrounds(currentLevel);
   }
 }
 
-// --- SETUP INICIAL DO JOGO ---
-
-// O jogo começa quando a imagem da água carrega.
+// --- SETUP INICIAL ---
 waterImage.onload = () => {
   waterLoaded = true;
 
-  // Adiciona o lago na posição do buraco.
+  // Adiciona o lago
   const waterCropbox = {
     x: 0,
     y: 2,
@@ -220,22 +195,20 @@ waterImage.onload = () => {
     })
   );
 
-  // Inicializa nível 1 e constrói 3 chunks iniciais
+  // Constroi 3 chunks iniciais
   switchBackgrounds(1);
   buildNewChunk();
   buildNewChunk();
   buildNewChunk();
 
-  // === SPAWN INIMIGOS NO PRIMEIRO CHUNK ===
+  // === SPAWN INIMIGOS ===
   const groundY = 190;
   const spriteH = 32;
   const spawnY = groundY - spriteH;
 
-  // patrulha do “corredor” entre a plataforma e o lago no primeiro chunk
   const patrolStartX = 148;
-  const patrolEndX = 231; // ~ início do lago (15 * 15.4)
+  const patrolEndX = 231; 
 
-  // posições iniciais
   const cerejinhaX = 150;
   const astroX = 185;
   const ceboleteX = 210;
@@ -255,11 +228,10 @@ waterImage.onload = () => {
   });
 
   enemies.push(cerejinha, astro, cebolete);
-
   console.log("Enemies spawned:", enemies.length);
 };
 
-// --- OBJETO CÂMERA ---
+// --- CAMERA ---
 const camera = {
   position: { x: 0, y: 0 },
 };
@@ -268,15 +240,14 @@ const camera = {
 function animate() {
   window.requestAnimationFrame(animate);
 
-  // [BLOCO DE CARREGAMENTO SEGURO] Garante que todos os assets do nível atual carregaram
+  // --- Bloco de Carregamento ---
   const allBackgroundsLoaded = backgroundLayers.every((layer) => layer.loaded);
-
   if (!terrainLoaded || !waterLoaded || !allBackgroundsLoaded) {
     context.fillStyle = "black";
     context.fillRect(0, 0, canvas.width, canvas.height);
     context.font = "16px Arial";
     context.fillStyle = "white";
-    context.fillText("CARREGANDO NÍVEL...", 450, 280);
+    context.fillText("CARREGANDO NIVEL...", 450, 280);
     return;
   }
 
@@ -287,7 +258,7 @@ function animate() {
   context.save();
   context.scale(scaleFactor, scaleFactor);
 
-  // --- ATUALIZAÇÃO DO JOGADOR ---
+  // --- ATUALIZACAO DO JOGADOR ---
   const input = {
     left: keys.a.pressed,
     right: keys.d.pressed,
@@ -296,22 +267,38 @@ function animate() {
   const worldWidth = worldBuildLimit;
   const worldHeight = foregroundScenery.height;
 
-  // Cálculo do DeltaTime
+  // DeltaTime
   const currentTime = performance.now();
   const deltaTime = (currentTime - (lastTime || currentTime)) / 1000;
   lastTime = currentTime;
 
-  if (keys.mouseLeft.pressed) player.attack();
-  player.update(worldHeight, worldWidth, platforms, solidPlatforms, {
-    left: keys.a.pressed,
-    right: keys.d.pressed,
-    jump: keys.w.pressed,
-    attack: keys.mouseLeft.pressed,
-  });
+  // (MODIFICADO) So atualiza o player se ele nao estiver morto
+  if (!player.isDead) {
+      if (keys.mouseLeft.pressed) player.attack();
+      
+      // Passa 'input' e 'deltaTime' (embora o 'update' atual nao use deltaTime)
+      player.update(worldHeight, worldWidth, platforms, solidPlatforms, input);
+  }
+  
+  // (NOVO) Logica de Morte do Player
+  if (player.isDead && !player.deathAnimationSpawned) {
+      player.deathAnimationSpawned = true; // Impede loop
+      
+      // Cria a explosao
+      sprites.push(new DeathAnimation({
+        position: { x: player.position.x - (40/2) + (player.width/2), // Centraliza explosao
+                    y: player.position.y - (40/2) + (player.height/2) },
+        imageSrc: './Sprite Pack 8/enemy-death.png',
+        frameWidth: 40,
+        frameHeight: 40,
+        totalFrames: 6,
+        frameInterval: 30,
+      }));
+  }
 
-  // --- LÓGICA DE MUNDO E RECICLAGEM ---
 
-  // [BLOCO DE GERAÇÃO] Constrói um novo chunk se o jogador se aproximar do limite
+
+  // Geracao de Chunks
   if (
     totalChunkIndex < TOTAL_LEVELS * CHUNKS_PER_LEVEL &&
     player.position.x + scaledCanvas.width > worldBuildLimit - CHUNK_WIDTH
@@ -319,9 +306,8 @@ function animate() {
     buildNewChunk();
   }
 
-  // [BLOCO DE RECICLAGEM] Remove plataformas que saíram da área de jogo
+  // Reciclagem de Plataformas
   const recycleThreshold = player.position.x - CHUNK_WIDTH * 2;
-
   for (let i = platforms.length - 1; i >= 0; i--) {
     const platform = platforms[i];
     if (platform.position.x + platform.width < recycleThreshold) {
@@ -329,29 +315,27 @@ function animate() {
     }
   }
 
-  // [ATUALIZAÇÃO DE INIMIGOS E COLISÃO]
-  // (Loop 'for' reverso para permitir remoção segura com 'splice')
+  // checa colisao inimigos
   for (let i = enemies.length - 1; i >= 0; i--) {
     const enemy = enemies[i];
 
-    // (MODIFICAÇÃO 1: Passa o 'player' para o update do Astro)
     if (enemy instanceof Astro) {
-      enemy.update(deltaTime, player);
+      enemy.update(deltaTime, player); 
     } else {
-      enemy.update(deltaTime); // Lógica antiga para outros inimigos
+      enemy.update(deltaTime); 
     }
 
-    // --- LÓGICA DE DERROTA DO CEREJINHA ---
-    if (enemy instanceof Cerejinha) {
-      // 1. Checar "Pulo na Cabeça" (Stomp)
+  //derrt cerej
+      if (enemy instanceof Cerejinha) {
+      // pelou na cab
       const isStomping =
         platformCollision({
           object1: player.hitbox,
           object2: enemy.hitbox,
-        }) && player.velocity.y > 0; // Confirma que o jogador está caindo
+        }) && player.velocity.y > 0; 
 
-      if (isStomping) {
-        player.velocity.y = -4; // Faz o jogador pular (bounce)
+      if (isStomping && !player.isDead) { 
+        player.velocity.y = -4; 
 
         sprites.push(
           new DeathAnimation({
@@ -364,50 +348,49 @@ function animate() {
           })
         );
 
-        enemies.splice(i, 1); // Remove o inimigo
+        enemies.splice(i, 1); 
       } else if (collision({ object1: player.hitbox, object2: enemy.hitbox })) {
-        // 2. Checar Colisão Lateral (Jogador se machuca)
-        console.log("Jogador colidiu lateralmente com Cerejinha");
-        // (Aqui entraria a lógica de dano ao jogador)
+        
+        player.takeDamage(); 
       }
     }
-    // (MODIFICAÇÃO 2: Adiciona colisão para projéteis do Cebolete)
+    // colisao cebolete
     else if (enemy instanceof Cebolete) {
       // Checa colisão das sementes
       for (let j = enemy.projectiles.length - 1; j >= 0; j--) {
         const seed = enemy.projectiles[j];
 
         if (collision({ object1: seed, object2: player.hitbox })) {
-          console.log("JOGADOR ATINGIDO PELA SEMENTE!");
-          // (Aqui entraria a lógica de dano ao jogador)
-          enemy.projectiles.splice(j, 1); // Remove a semente
+          //dano
+          player.takeDamage(); 
+          enemy.projectiles.splice(j, 1); 
         }
       }
 
       // Checa colisão lateral com o Cebolete
       if (collision({ object1: player.hitbox, object2: enemy.hitbox })) {
-        console.log("Jogador colidiu lateralmente com Cebolete");
-        // (Aqui entraria a lógica de dano ao jogador)
+         
+         player.takeDamage();
       }
     }
-    // (A colisão do soco do Astro já é tratada dentro do update() do próprio Astro)
+    // colisao astro
     else if (enemy instanceof Astro) {
-      // Checa colisão lateral com o Astro (quando ele não está socando)
+      
       if (
         collision({ object1: player.hitbox, object2: enemy.hitbox }) &&
         enemy.state !== "attack"
       ) {
-        console.log("Jogador colidiu lateralmente com Astro");
-        // (Aqui entraria a lógica de dano ao jogador)
+        
+        player.takeDamage();
       }
     }
   }
 
-  // --- CÂMERA: POSICIONAMENTO E LIMITES ---
+  
   camera.position.x = -player.position.x + scaledCanvas.width / 2;
   camera.position.y = -player.position.y + scaledCanvas.height / 2;
 
-  // Limites da Câmera
+  // Limites da Camera
   if (camera.position.x > 0) camera.position.x = 0;
   if (
     worldWidth > scaledCanvas.width &&
@@ -419,11 +402,11 @@ function animate() {
   if (camera.position.y < -(worldHeight - scaledCanvas.height))
     camera.position.y = -(worldHeight - scaledCanvas.height);
 
-  // --- DESENHO: EFEITO PARALLAX ---
+  
   const layerParallaxFactors = [0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.8];
   let layerIndex = 0;
 
-  // 1. Céu
+  // 1. Ceu
   context.save();
   context.translate(
     camera.position.x * layerParallaxFactors[layerIndex++],
@@ -432,7 +415,7 @@ function animate() {
   skyColor.draw(context);
   context.restore();
 
-  // 2. Nuvens (movimento próprio)
+  // 2. Nuvens
   const layerWidth = 288;
   cloudCover1.position.x -= CLOUD_SPEED_1 * deltaTime;
   cloudCover1_2.position.x -= CLOUD_SPEED_1 * deltaTime;
@@ -447,7 +430,6 @@ function animate() {
   if (cloudCover2_2.position.x < -layerWidth)
     cloudCover2_2.position.x += layerWidth * 2;
 
-  // Desenha as 4 camadas de nuvens
   for (let i = 0; i < 4; i++) {
     const layer = backgroundLayers[layerIndex + i];
     context.save();
@@ -457,7 +439,7 @@ function animate() {
   }
   layerIndex += 4;
 
-  // 3. Hills e Foreground (parallax com a câmera)
+  // 3. Hills e Foreground
   for (let i = 0; i < 2; i++) {
     const layer = backgroundLayers[layerIndex + i];
     const factor = layerParallaxFactors[layerIndex + i];
@@ -468,10 +450,10 @@ function animate() {
     context.restore();
   }
 
-  // --- DESENHO: OBJETOS DE JOGO (Movimento com a Câmera) ---
+  // desenha o mundo
   context.translate(camera.position.x, camera.position.y);
 
-  // Plataformas e sólidos
+  // Plataformas
   for (const platform of platforms) {
     platform.draw(context);
   }
@@ -483,19 +465,19 @@ function animate() {
   for (const enemy of enemies) {
     enemy.draw(context);
   }
-
+  
+  // Flechas do Jogador
   for (const arrow of player.projectiles) {
     arrow.draw(context);
   }
 
-  // Desenha e atualiza as animações (ex: morte)
+  // Animacoes (Morte)
   for (let i = sprites.length - 1; i >= 0; i--) {
     const sprite = sprites[i];
-
     if (sprite.done) {
-      sprites.splice(i, 1); // Remove a animação se ela já terminou
+      sprites.splice(i, 1); 
     } else {
-      sprite.update(); // (Usa o timer interno, não deltaTime)
+      sprite.update(); 
       sprite.draw(context);
     }
   }
@@ -503,16 +485,32 @@ function animate() {
   // Jogador
   player.draw(context);
 
-  // HUD
-  context.font = "8px Arial";
-  context.fillStyle = "white";
-  const levelText = `NÍVEL: ${currentLevel} / ${TOTAL_LEVELS} - ${
-    LEVEL_CYCLE[currentLevel - 1].name
-  }`;
-  context.fillText(levelText, -camera.position.x + 10, -camera.position.y + 10);
+  
+  // (Desenha por ultimo, fora da camera)
+  context.restore(); 
 
+  context.save(); 
+  context.font = "16px Arial"; 
+  context.fillStyle = "white";
+  
+  const levelText = `NIVEL: ${currentLevel} / ${TOTAL_LEVELS}`;
+  context.fillText(levelText, 10, 20);
+  
+  // desenha vidas
+  const livesText = `VIDAS: ${player.lives}`;
+  context.fillText(livesText, 10, 40);
+
+  // Game Over
+  if (player.isDead) {
+      context.fillStyle = "rgba(0, 0, 0, 0.5)";
+      context.fillRect(0, 0, canvas.width, canvas.height); // Escurece a tela
+      
+      context.fillStyle = "red";
+      context.font = "40px Arial";
+      context.fillText("GAME OVER", canvas.width / 2 - 100, canvas.height / 2);
+  }
   context.restore();
+  
 }
 
-// Inicia o loop do jogo
 animate();
