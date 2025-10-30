@@ -1,4 +1,4 @@
-const CEREJINHA_X_VELOCITY = 20; 
+const CEREJINHA_X_VELOCITY = 20;
 
 class Cerejinha {
   constructor({ x, y, patrolStartX = 148, patrolEndX = 231 }) {
@@ -11,30 +11,33 @@ class Cerejinha {
     this.height = 30;
 
     // alinhamento com o chao
-    this.spriteBaselineHeight = 32;           
-    this.groundBottom = y + this.spriteBaselineHeight; 
+    this.spriteBaselineHeight = 32;
+    this.groundBottom = y + this.spriteBaselineHeight;
     this.isImageLoaded = false;
     this.image = new Image();
     this.image.onload = () => {
       this.isImageLoaded = true;
     };
 
-    this.image.src = './Sprite Pack 8/4 - Cerejinha/Running (32 x 32).png';
+    this.image.src = "./Sprite Pack 8/4 - Cerejinha/Running (32 x 32).png";
 
     this.elapsedTime = 0;
     this.currentFrame = 0;
     this.totalFrames = 6;
-    this.facing = 'right';
+    this.facing = "right";
 
     // limites de patrulha
     this.patrolStartX = patrolStartX;
-    this.patrolEndX   = patrolEndX;
+    this.patrolEndX = patrolEndX;
 
     // hitbox proporcional
     this.hitbox = {
-      position: { x: this.position.x + 3, y: this.position.y + 3 },
-      width: 14,
-      height: 14,
+      position: {
+        x: this.position.x,
+        y: this.position.y + 5,
+      },
+      width: this.width,
+      height: this.height - 5,
     };
   }
 
@@ -44,20 +47,30 @@ class Cerejinha {
     const frameX = this.currentFrame * this.frameWidth;
 
     context.save();
-    if (this.facing === 'left') {
+    if (this.facing === "left") {
       context.scale(-1, 1);
       context.drawImage(
         this.image,
-        frameX, 0, this.frameWidth, this.frameHeight,
-        -this.position.x - this.width, this.position.y,
-        this.width, this.height
+        frameX,
+        0,
+        this.frameWidth,
+        this.frameHeight,
+        -this.position.x - this.width,
+        this.position.y,
+        this.width,
+        this.height
       );
     } else {
       context.drawImage(
         this.image,
-        frameX, 0, this.frameWidth, this.frameHeight,
-        this.position.x, this.position.y,
-        this.width, this.height
+        frameX,
+        0,
+        this.frameWidth,
+        this.frameHeight,
+        this.position.x,
+        this.position.y,
+        this.width,
+        this.height
       );
     }
     context.restore();
@@ -86,16 +99,19 @@ class Cerejinha {
     }
 
     // verifica limites
-    if (this.position.x + this.width >= this.patrolEndX && this.velocity.x > 0) {
+    if (
+      this.position.x + this.width >= this.patrolEndX &&
+      this.velocity.x > 0
+    ) {
       this.velocity.x = -CEREJINHA_X_VELOCITY;
-      this.facing = 'left';
+      this.facing = "left";
     } else if (this.position.x <= this.patrolStartX && this.velocity.x < 0) {
       this.velocity.x = CEREJINHA_X_VELOCITY;
-      this.facing = 'right';
+      this.facing = "right";
     }
 
-    // atualiza 
-    this.hitbox.position.x = this.position.x + 3;
-    this.hitbox.position.y = this.position.y + 3;
+    // atualiza
+    this.hitbox.position.x = this.position.x;
+    this.hitbox.position.y = this.position.y + 5;
   }
 }

@@ -1,13 +1,12 @@
-// --- CLASSE PROJECTILE ---
 export class Projectile {
   constructor({ position, direction }) {
-    this.position = position;
+    this.position = { x: position.x, y: position.y };
     this.direction = direction;
-    this.speed = 5 * direction;
-    this.width = 16;
-    this.height = 4;
+    this.speed = 6 * direction;
+    this.width = 12;
+    this.height = 6;
 
-    this.image = new Image(); // esse new aqui tbm n pode
+    this.image = new Image();
     this.image.src = "./Sprite Pack 8/2 - Tracy/Arrow_Projectile (16 x 16).png";
   }
 

@@ -1,7 +1,6 @@
 import { Sprite, collision, platformCollision } from "./sprites.js";
 import { Projectile } from "./projectile.js";
 
-// --- CLASSE PLAYER REFATORADA ---
 export class Player extends Sprite {
   constructor() {
     super({
@@ -136,7 +135,7 @@ export class Player extends Sprite {
     const arrow = new Projectile({
       position: {
         x: this.position.x + (this.direction === 1 ? this.width : -10),
-        y: this.position.y + this.height / 2 - 4,
+        y: this.position.y + this.height / 2 - 10,
       },
       direction: this.direction,
     });
