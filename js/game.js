@@ -319,49 +319,74 @@ function animate() {
     }
   }
 
-  // [ATUALIZAÇÃO DE INIMIGOS]
- // [ATUALIZAÇÃO DE INIMIGOS E COLISÃO]
+  // [ATUALIZAÇÃO DE INIMIGOS E COLISÃO]
   // (Loop 'for' reverso para permitir remoção segura com 'splice')
   for (let i = enemies.length - 1; i >= 0; i--) {
     const enemy = enemies[i];
-    enemy.update(deltaTime); // Atualiza o inimigo
 
+    // (MODIFICAÇÃO 1: Passa o 'player' para o update do Astro)
+    if (enemy instanceof Astro) {
+      enemy.update(deltaTime, player);
+    } else {
+      enemy.update(deltaTime); // Lógica antiga para outros inimigos
+    }
+    
     // --- LÓGICA DE DERROTA DO CEREJINHA ---
-    // Verifica se o inimigo é da classe Cerejinha
     if (enemy instanceof Cerejinha) {
       
       // 1. Checar "Pulo na Cabeça" (Stomp)
-      // Usamos a função 'platformCollision' (de sprites.js) para checar
-      // se a base do jogador está colidindo com o topo do inimigo.
       const isStomping = platformCollision({
         object1: player.hitbox,
         object2: enemy.hitbox,
       }) && player.velocity.y > 0; // Confirma que o jogador está caindo
 
       if (isStomping) {
-        // Faz o jogador pular um pouco (bounce)
-        player.velocity.y = -4; 
+        player.velocity.y = -4; // Faz o jogador pular (bounce)
 
-        // Adiciona a animação de morte no local do inimigo
         sprites.push(new DeathAnimation({
           position: { x: enemy.position.x, y: enemy.position.y },
           imageSrc: './Sprite Pack 8/enemy-death.png',
-          frameWidth: 40,    // Largura de cada frame da animação de morte
-          frameHeight: 40,   // Altura
-          totalFrames: 6,    // A imagem 'enemy-death.png' tem 6 frames
-          frameInterval: 30   // Velocidade da animação (ticks)
+          frameWidth: 40,
+          frameHeight: 40,
+          totalFrames: 6,
+          frameInterval: 30
         }));
-
-        // Remove o inimigo do jogo
-        enemies.splice(i, 1);
+        
+        enemies.splice(i, 1); // Remove o inimigo
       
       } else if (collision({ object1: player.hitbox, object2: enemy.hitbox })) {
         // 2. Checar Colisão Lateral (Jogador se machuca)
-        // (Aqui entraria a lógica de dano ao jogador, se houvesse)
         console.log("Jogador colidiu lateralmente com Cerejinha");
+        // (Aqui entraria a lógica de dano ao jogador)
+      }
+    } 
+    // (MODIFICAÇÃO 2: Adiciona colisão para projéteis do Cebolete)
+    else if (enemy instanceof Cebolete) {
+      // Checa colisão das sementes
+      for (let j = enemy.projectiles.length - 1; j >= 0; j--) {
+        const seed = enemy.projectiles[j];
+        
+        if (collision({ object1: seed, object2: player.hitbox })) {
+          console.log("JOGADOR ATINGIDO PELA SEMENTE!");
+          // (Aqui entraria a lógica de dano ao jogador)
+          enemy.projectiles.splice(j, 1); // Remove a semente
+        }
+      }
+      
+      // Checa colisão lateral com o Cebolete
+      if (collision({ object1: player.hitbox, object2: enemy.hitbox })) {
+         console.log("Jogador colidiu lateralmente com Cebolete");
+         // (Aqui entraria a lógica de dano ao jogador)
       }
     }
-    // (Você pode adicionar 'else if (enemy instanceof Astro)' etc. aqui)
+    // (A colisão do soco do Astro já é tratada dentro do update() do próprio Astro)
+    else if (enemy instanceof Astro) {
+       // Checa colisão lateral com o Astro (quando ele não está socando)
+       if (collision({ object1: player.hitbox, object2: enemy.hitbox }) && enemy.state !== 'attack') {
+         console.log("Jogador colidiu lateralmente com Astro");
+         // (Aqui entraria a lógica de dano ao jogador)
+      }
+    }
   }
 
   // --- CÂMERA: POSICIONAMENTO E LIMITES ---
@@ -445,12 +470,6 @@ function animate() {
     enemy.draw(context);
   }
 
-// Inimigos (desenho)
-  for (const enemy of enemies) {
-    enemy.draw(context);
-  }
-
-  // --- ADICIONE ESTE BLOCO ---
   // Desenha e atualiza as animações (ex: morte)
   for (let i = sprites.length - 1; i >= 0; i--) {
     const sprite = sprites[i];
@@ -462,7 +481,6 @@ function animate() {
       sprite.draw(context);
     }
   }
-  // --- FIM DO BLOCO ADICIONADO ---
 
   // Jogador
   player.draw(context);
