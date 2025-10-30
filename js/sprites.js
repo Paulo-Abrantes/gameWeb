@@ -2,7 +2,7 @@ const globalArrowImage = new Image();
 globalArrowImage.src =
   "./Sprite Pack 8/2 - Tracy/Arrow_Projectile (16 x 16).png";
 
-// FUNCOES DE COLISAO
+//colisao
 function collision({ object1, object2 }) {
   return (
     object1.position.y + object1.height >= object2.position.y &&
@@ -22,7 +22,6 @@ function platformCollision({ object1, object2 }) {
   );
 }
 
-// Classe base
 class Sprite {
   constructor({ position, imageSrc }) {
     this.position = position;
@@ -45,7 +44,6 @@ class Sprite {
   }
 }
 
-// Classe plataforma
 class Platform {
   constructor({ position, image, cropbox }) {
     this.position = position;
@@ -123,7 +121,6 @@ class Player {
     this.cooldown = 0;
     this.projectiles = [];
 
-    // Pre-carrega imagens
     this.images = {};
     for (let state in this.animations) {
       const animation = this.animations[state];
@@ -190,7 +187,6 @@ class Player {
     this.isDead = true;
     this.velocity.x = 0;
     this.velocity.y = 0;
-    // O player vai ser escondido no 'draw'
   }
 
   move(input) {
@@ -409,7 +405,6 @@ class Player {
 
     if (this.cooldown > 0) this.cooldown--;
 
-    // at flechas
     for (let i = this.projectiles.length - 1; i >= 0; i--) {
       const arrow = this.projectiles[i];
       arrow.update();

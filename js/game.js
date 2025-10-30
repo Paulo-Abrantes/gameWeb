@@ -21,6 +21,8 @@ let worldBuildLimit = 0;
 let currentLevel = 1;
 let totalChunkIndex = 0;
 
+window.gameWon = false;
+
 const GRASSLAND_THEME = {
   bgPaths: {
     skyColor:
@@ -90,7 +92,7 @@ const player = new Player();
 const enemies = [];
 const platforms = [];
 const solidPlatforms = [];
-const sprites = []; // Para animacoes (ex: morte)
+const sprites = [];
 
 let lastTime;
 
@@ -218,6 +220,9 @@ waterImage.onload = () => {
 
   enemies.push(cerejinha, astro, cebolete);
   console.log("Enemies spawned:", enemies.length);
+
+  window.totalEnemies = enemies.length;
+  window.remainingEnemies = enemies.length;
 };
 
 const camera = {
@@ -324,6 +329,7 @@ function animate() {
 
         enemies.splice(i, 1);
         player.projectiles.splice(j, 1);
+        window.remainingEnemies--;
         break;
       }
     }
@@ -348,6 +354,7 @@ function animate() {
           })
         );
         enemies.splice(i, 1);
+        window.remainingEnemies--;
       } else if (collision({ object1: player.hitbox, object2: enemy.hitbox })) {
         player.takeDamage();
       }
@@ -370,6 +377,13 @@ function animate() {
       ) {
         player.takeDamage();
       }
+    }
+  }
+
+  if (enemies.length === 0 && !player.isDead) {
+    if (!window.gameWon) {
+      window.gameWon = true;
+      console.log("player venceu!");
     }
   }
 
@@ -482,14 +496,26 @@ function animate() {
   const livesText = `VIDAS: ${player.lives}`;
   context.fillText(livesText, 10, 40);
 
+  const enemiesText = `INIMIGOS: ${window.remainingEnemies}`;
+  context.fillText(enemiesText, 10, 60);
+
   //game over
   if (player.isDead) {
     context.fillStyle = "rgba(0, 0, 0, 0.5)";
-    context.fillRect(0, 0, canvas.width, canvas.height); // Escurece a tela
-
+    context.fillRect(0, 0, canvas.width, canvas.height);
     context.fillStyle = "red";
     context.font = "40px Arial";
     context.fillText("GAME OVER", canvas.width / 2 - 100, canvas.height / 2);
+    return;
+  }
+
+  if (window.gameWon) {
+    context.fillStyle = "rgba(0, 0, 0, 0.5)";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = "lime";
+    context.font = "40px Arial";
+    context.fillText("YOU WIN!", canvas.width / 2 - 80, canvas.height / 2);
+    return;
   }
   context.restore();
 }
