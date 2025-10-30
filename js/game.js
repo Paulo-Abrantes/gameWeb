@@ -346,10 +346,10 @@ function animate() {
         sprites.push(new DeathAnimation({
           position: { x: enemy.position.x, y: enemy.position.y },
           imageSrc: './Sprite Pack 8/enemy-death.png',
-          frameWidth: 32,    // Largura de cada frame da animação de morte
-          frameHeight: 32,   // Altura
+          frameWidth: 40,    // Largura de cada frame da animação de morte
+          frameHeight: 40,   // Altura
           totalFrames: 6,    // A imagem 'enemy-death.png' tem 6 frames
-          frameInterval: 8   // Velocidade da animação (ticks)
+          frameInterval: 30   // Velocidade da animação (ticks)
         }));
 
         // Remove o inimigo do jogo
