@@ -362,6 +362,7 @@ function animate() {
     } 
     // (MODIFICAÇÃO 2: Adiciona colisão para projéteis do Cebolete)
     else if (enemy instanceof Cebolete) {
+      
       // Checa colisão das sementes
       for (let j = enemy.projectiles.length - 1; j >= 0; j--) {
         const seed = enemy.projectiles[j];
