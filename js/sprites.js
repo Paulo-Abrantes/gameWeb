@@ -102,10 +102,6 @@ class Player {
         src: "./Sprite Pack 8/2 - Tracy/Standing_Crossbow_Shot (32 x 32).png",
         frames: 4,
       },
-      reload: {
-        src: "./Sprite Pack 8/2 - Tracy/Reloading_Crossbow (32 x 32).png",
-        frames: 16,
-      },
     };
 
     this.currentState = "idle";
@@ -232,11 +228,6 @@ class Player {
       direction: this.direction,
     });
     this.projectiles.push(arrow);
-  }
-
-  reload() {
-    this.switchState("reload");
-    this.cooldown = 80;
   }
 
   // atualiza a hitbox do jogador
