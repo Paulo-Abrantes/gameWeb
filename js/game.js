@@ -237,16 +237,26 @@ waterImage.onload = () => {
 
   // posições iniciais
   const cerejinhaX = 150;
-  const astroX     = 185;
-  const ceboleteX  = 210;
+  const astroX = 185;
+  const ceboleteX = 210;
 
-  const cerejinha = new Cerejinha({ x: cerejinhaX, y: spawnY, patrolStartX, patrolEndX });
-  const astro     = new Astro({      x: astroX,     y: spawnY, patrolStartX, patrolEndX });
-  const cebolete  = new Cebolete({   x: ceboleteX,  y: spawnY, patrolStartX, patrolEndX });
+  const cerejinha = new Cerejinha({
+    x: cerejinhaX,
+    y: spawnY,
+    patrolStartX,
+    patrolEndX,
+  });
+  const astro = new Astro({ x: astroX, y: spawnY, patrolStartX, patrolEndX });
+  const cebolete = new Cebolete({
+    x: ceboleteX,
+    y: spawnY,
+    patrolStartX,
+    patrolEndX,
+  });
 
   enemies.push(cerejinha, astro, cebolete);
 
-  console.log('Enemies spawned:', enemies.length);
+  console.log("Enemies spawned:", enemies.length);
 };
 
 // --- OBJETO CÂMERA ---
@@ -330,62 +340,65 @@ function animate() {
     } else {
       enemy.update(deltaTime); // Lógica antiga para outros inimigos
     }
-    
+
     // --- LÓGICA DE DERROTA DO CEREJINHA ---
     if (enemy instanceof Cerejinha) {
-      
       // 1. Checar "Pulo na Cabeça" (Stomp)
-      const isStomping = platformCollision({
-        object1: player.hitbox,
-        object2: enemy.hitbox,
-      }) && player.velocity.y > 0; // Confirma que o jogador está caindo
+      const isStomping =
+        platformCollision({
+          object1: player.hitbox,
+          object2: enemy.hitbox,
+        }) && player.velocity.y > 0; // Confirma que o jogador está caindo
 
       if (isStomping) {
         player.velocity.y = -4; // Faz o jogador pular (bounce)
 
-        sprites.push(new DeathAnimation({
-          position: { x: enemy.position.x, y: enemy.position.y },
-          imageSrc: './Sprite Pack 8/enemy-death.png',
-          frameWidth: 40,
-          frameHeight: 40,
-          totalFrames: 6,
-          frameInterval: 30
-        }));
-        
+        sprites.push(
+          new DeathAnimation({
+            position: { x: enemy.position.x, y: enemy.position.y },
+            imageSrc: "./Sprite Pack 8/enemy-death.png",
+            frameWidth: 40,
+            frameHeight: 40,
+            totalFrames: 6,
+            frameInterval: 30,
+          })
+        );
+
         enemies.splice(i, 1); // Remove o inimigo
-      
       } else if (collision({ object1: player.hitbox, object2: enemy.hitbox })) {
         // 2. Checar Colisão Lateral (Jogador se machuca)
         console.log("Jogador colidiu lateralmente com Cerejinha");
         // (Aqui entraria a lógica de dano ao jogador)
       }
-    } 
+    }
     // (MODIFICAÇÃO 2: Adiciona colisão para projéteis do Cebolete)
     else if (enemy instanceof Cebolete) {
-      
       // Checa colisão das sementes
       for (let j = enemy.projectiles.length - 1; j >= 0; j--) {
         const seed = enemy.projectiles[j];
-        
+
         if (collision({ object1: seed, object2: player.hitbox })) {
           console.log("JOGADOR ATINGIDO PELA SEMENTE!");
           // (Aqui entraria a lógica de dano ao jogador)
           enemy.projectiles.splice(j, 1); // Remove a semente
         }
       }
-      
+
       // Checa colisão lateral com o Cebolete
       if (collision({ object1: player.hitbox, object2: enemy.hitbox })) {
-         console.log("Jogador colidiu lateralmente com Cebolete");
-         // (Aqui entraria a lógica de dano ao jogador)
+        console.log("Jogador colidiu lateralmente com Cebolete");
+        // (Aqui entraria a lógica de dano ao jogador)
       }
     }
     // (A colisão do soco do Astro já é tratada dentro do update() do próprio Astro)
     else if (enemy instanceof Astro) {
-       // Checa colisão lateral com o Astro (quando ele não está socando)
-       if (collision({ object1: player.hitbox, object2: enemy.hitbox }) && enemy.state !== 'attack') {
-         console.log("Jogador colidiu lateralmente com Astro");
-         // (Aqui entraria a lógica de dano ao jogador)
+      // Checa colisão lateral com o Astro (quando ele não está socando)
+      if (
+        collision({ object1: player.hitbox, object2: enemy.hitbox }) &&
+        enemy.state !== "attack"
+      ) {
+        console.log("Jogador colidiu lateralmente com Astro");
+        // (Aqui entraria a lógica de dano ao jogador)
       }
     }
   }
@@ -471,10 +484,14 @@ function animate() {
     enemy.draw(context);
   }
 
+  for (const arrow of player.projectiles) {
+    arrow.draw(context);
+  }
+
   // Desenha e atualiza as animações (ex: morte)
   for (let i = sprites.length - 1; i >= 0; i--) {
     const sprite = sprites[i];
-    
+
     if (sprite.done) {
       sprites.splice(i, 1); // Remove a animação se ela já terminou
     } else {

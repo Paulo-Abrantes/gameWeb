@@ -227,7 +227,7 @@ class Player {
         y: this.position.y + this.height / 2 - 4,
       },
       direction: this.direction,
-      image: globalArrowImage, // <-- ADICIONE ESTA LINHA
+      image: globalArrowImage,
     });
     this.projectiles.push(arrow);
   }
@@ -403,8 +403,6 @@ class Player {
       arrow.update();
       if (arrow.position.x < 0 || arrow.position.x > worldWidth) {
         this.projectiles.splice(i, 1); // remove flechas fora da tela
-      } else {
-        arrow.draw(context);
       }
     }
 
