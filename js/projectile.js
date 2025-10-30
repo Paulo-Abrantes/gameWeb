@@ -1,4 +1,4 @@
-export class Projectile {
+class Projectile {
   constructor({ position, direction }) {
     this.position = { x: position.x, y: position.y };
     this.direction = direction;

@@ -1,5 +1,3 @@
-// (Arquivo: gameWeb/js/sprites.js)
-
 const globalArrowImage = new Image();
 globalArrowImage.src =
   "./Sprite Pack 8/2 - Tracy/Arrow_Projectile (16 x 16).png";
@@ -74,7 +72,6 @@ class Platform {
   }
 }
 
-// --- CLASSE PLAYER (MODIFICADA COM VIDAS) ---
 class Player {
   constructor() {
     this.position = { x: 100, y: 100 };
@@ -83,15 +80,15 @@ class Player {
     this.height = 16;
     this.isOnGround = false;
     this.gravity = 0.5;
-    this.direction = 1; 
+    this.direction = 1;
 
     // Vidas e Dano
     this.lives = 3;
     this.isDead = false;
-    this.deathAnimationSpawned = false; 
+    this.deathAnimationSpawned = false;
     this.isInvincible = false;
     this.invincibilityTimer = 0;
-    this.invincibilityDuration = 100; 
+    this.invincibilityDuration = 100;
 
     this.animations = {
       idle: {
@@ -108,10 +105,10 @@ class Player {
         src: "./Sprite Pack 8/2 - Tracy/Standing_Crossbow_Shot (32 x 32).png",
         frames: 4,
       },
-      hurt: { 
+      hurt: {
         src: "./Sprite Pack 8/2 - Tracy/Hurt (32 x 32).png",
         frames: 1,
-        interval: 100, 
+        interval: 100,
       },
     };
 
@@ -119,12 +116,12 @@ class Player {
     this.frameX = 0;
     this.frameTimer = 0;
     this.frameInterval = 10;
-    
+
     this.frameWidth = 32;
     this.frameHeight = 32;
 
-    this.cooldown = 0; 
-    this.projectiles = []; 
+    this.cooldown = 0;
+    this.projectiles = [];
 
     // Pre-carrega imagens
     this.images = {};
@@ -145,23 +142,22 @@ class Player {
 
   switchState(state) {
     if (this.currentState === state) return;
-    
+
     this.currentState = state;
     this.currentImage = this.images[state];
     if (!this.currentImage) {
       console.error(`Imagem nao encontrada: ${state}`);
-      this.currentImage = this.images.idle; 
+      this.currentImage = this.images.idle;
     }
 
     this.maxFrames = this.animations[state].frames;
     this.frameX = 0;
     this.frameTimer = 0;
 
-    
     if (this.animations[state].interval) {
       this.frameInterval = this.animations[state].interval / 10; // Ajuste
     } else {
-      this.frameInterval = 10; 
+      this.frameInterval = 10;
     }
   }
 
@@ -177,19 +173,19 @@ class Player {
     this.isInvincible = true;
     this.invincibilityTimer = this.invincibilityDuration;
     this.lives--;
-    
+
     console.log("VIDAS RESTANTES: " + this.lives);
 
     if (this.lives <= 0) {
       this.die();
     } else {
-      this.switchState('hurt');
-      this.velocity.y = -5; 
+      this.switchState("hurt");
+      this.velocity.y = -5;
       this.isOnGround = false;
     }
   }
 
-  // Logica de morrer
+  // logica de morrer
   die() {
     this.isDead = true;
     this.velocity.x = 0;
@@ -198,8 +194,11 @@ class Player {
   }
 
   move(input) {
-    // Nao se move se estiver morto, tomando dano, ou atacando
-    if (this.currentState === "attack" || this.currentState === "hurt" || this.isDead) {
+    if (
+      this.currentState === "attack" ||
+      this.currentState === "hurt" ||
+      this.isDead
+    ) {
       this.velocity.x = 0;
       return;
     }
@@ -217,8 +216,8 @@ class Player {
       this.velocity.y = -8;
       this.isOnGround = false;
     }
-    
-    // Animacao de movimento
+
+    // animação de movimento
     if (!this.isOnGround) {
       if (this.velocity.y < 0) this.switchState("jump");
       else this.switchState("fall");
@@ -230,9 +229,10 @@ class Player {
   }
 
   attack() {
-    if (this.cooldown > 0 || this.currentState === 'hurt' || this.isDead) return;
+    if (this.cooldown > 0 || this.currentState === "hurt" || this.isDead)
+      return;
     this.switchState("attack");
-    this.cooldown = 50; 
+    this.cooldown = 50;
 
     const arrow = new Projectile({
       position: {
@@ -240,7 +240,7 @@ class Player {
         y: this.position.y + this.height / 2 - 4,
       },
       direction: this.direction,
-      image: globalArrowImage, 
+      image: globalArrowImage,
     });
     this.projectiles.push(arrow);
   }
@@ -256,16 +256,18 @@ class Player {
   animate() {
     this.frameTimer++;
     if (this.frameTimer >= this.frameInterval) {
-      
-      if (this.currentState === "attack" && this.frameX === this.maxFrames - 1) {
+      if (
+        this.currentState === "attack" &&
+        this.frameX === this.maxFrames - 1
+      ) {
         this.switchState("idle");
-      } 
-      
-      else if (this.currentState === 'hurt' && this.frameX === this.maxFrames - 1) {
-          
-          if(this.frameTimer > 30) { 
-             this.switchState('idle');
-          }
+      } else if (
+        this.currentState === "hurt" &&
+        this.frameX === this.maxFrames - 1
+      ) {
+        if (this.frameTimer > 30) {
+          this.switchState("idle");
+        }
       }
 
       this.frameX = (this.frameX + 1) % this.maxFrames;
@@ -274,40 +276,45 @@ class Player {
   }
 
   draw(context) {
-    // nao desenha se morreu
     if (this.isDead) return;
-    
+
     const flip = this.direction === -1;
 
     context.save();
-    
-    
+
     if (this.isInvincible) {
-      
       if (Math.floor(this.invincibilityTimer / 4) % 2 === 0) {
-         context.globalAlpha = 0.5;
+        context.globalAlpha = 0.5;
       }
     }
-    
+
     if (flip) {
       context.scale(-1, 1);
       context.drawImage(
         this.currentImage,
-        this.frameX * this.frameWidth, 0,
-        this.frameWidth, this.frameHeight,
-        -this.position.x - this.width, this.position.y,
-        this.width, this.height
+        this.frameX * this.frameWidth,
+        0,
+        this.frameWidth,
+        this.frameHeight,
+        -this.position.x - this.width,
+        this.position.y,
+        this.width,
+        this.height
       );
     } else {
       context.drawImage(
         this.currentImage,
-        this.frameX * this.frameWidth, 0,
-        this.frameWidth, this.frameHeight,
-        this.position.x, this.position.y,
-        this.width, this.height
+        this.frameX * this.frameWidth,
+        0,
+        this.frameWidth,
+        this.frameHeight,
+        this.position.x,
+        this.position.y,
+        this.width,
+        this.height
       );
     }
-    context.restore(); 
+    context.restore();
   }
 
   // colisao horizontal
@@ -329,8 +336,12 @@ class Player {
     }
   }
 
-  // Colisao vertical
-  checkForVerticalCollisions({ worldHeight, platforms = [], solidPlatforms = [] }) {
+  // colisao vertical
+  checkForVerticalCollisions({
+    worldHeight,
+    platforms = [],
+    solidPlatforms = [],
+  }) {
     this.isOnGround = false;
     for (let i = 0; i < solidPlatforms.length; i++) {
       const platform = solidPlatforms[i];
@@ -367,41 +378,35 @@ class Player {
     }
   }
 
-  // Funcao principal de atualizacao
   update(worldHeight, worldWidth, platforms = [], solidPlatforms = [], input) {
-    
     if (this.isDead) {
-         return;
+      return;
     }
 
-    
     if (this.isInvincible) {
       this.invincibilityTimer--;
       if (this.invincibilityTimer <= 0) {
         this.isInvincible = false;
-        
-        if (this.currentState === 'hurt') {
-            this.switchState('idle');
+
+        if (this.currentState === "hurt") {
+          this.switchState("idle");
         }
       }
     }
 
-    this.updateHitbox(); 
+    this.updateHitbox();
     this.move(input);
-    
-    
-    if (this.currentState !== 'hurt') {
-         this.position.x += this.velocity.x;
-    }
-    
-    this.applyGravity();
-    this.isOnGround = false; 
 
-    
+    if (this.currentState !== "hurt") {
+      this.position.x += this.velocity.x;
+    }
+
+    this.applyGravity();
+    this.isOnGround = false;
+
     this.checkForHorizontalCollisions({ solidPlatforms });
     this.checkForVerticalCollisions({ worldHeight, platforms, solidPlatforms });
 
-    
     if (this.cooldown > 0) this.cooldown--;
 
     // at flechas
@@ -418,7 +423,6 @@ class Player {
   }
 }
 
-
 class Projectile {
   constructor({ position, direction, image }) {
     this.position = position;
@@ -426,7 +430,7 @@ class Projectile {
     this.speed = 5 * direction;
     this.width = 16;
     this.height = 4;
-    this.image = image; 
+    this.image = image;
   }
 
   update() {
@@ -457,7 +461,7 @@ class Projectile {
   }
 }
 
-// Classe de animacao de morte
+//animação de morte
 class DeathAnimation extends Sprite {
   constructor({
     position,
@@ -491,7 +495,7 @@ class DeathAnimation extends Sprite {
 
     this.frameTimer++;
     if (this.frameTimer >= this.frameInterval) {
-      this.frameX++; 
+      this.frameX++;
       if (this.frameX >= this.maxFrames) {
         this.done = true;
         this.frameX = this.maxFrames - 1;
@@ -508,7 +512,7 @@ class DeathAnimation extends Sprite {
     context.drawImage(
       this.image,
       frameX_coord,
-      0, 
+      0,
       this.frameWidth,
       this.frameHeight,
       this.position.x,
@@ -519,12 +523,12 @@ class DeathAnimation extends Sprite {
   }
 }
 
-// Classe do projetil de semente
+//projetil semente cebolete
 class SeedProjectile {
   constructor({ position, direction }) {
     this.position = position;
-    this.direction = direction; 
-    this.velocity = { x: 80 * this.direction, y: 0 }; 
+    this.direction = direction;
+    this.velocity = { x: 80 * this.direction, y: 0 };
 
     this.image = new Image();
     this.image.src = "./Sprite Pack 8/3 - Cebolete/Seed_Launch (8 x 8).png";
@@ -537,11 +541,11 @@ class SeedProjectile {
     this.height = 8;
     this.frameWidth = 8;
     this.frameHeight = 8;
-    this.maxFrames = 2; 
+    this.maxFrames = 2;
 
     this.currentFrame = 0;
     this.elapsedMs = 0;
-    this.frameInterval = 150; 
+    this.frameInterval = 150;
   }
 
   updateAnimation(dt) {
@@ -562,14 +566,17 @@ class SeedProjectile {
   draw(context) {
     if (!this.loaded) return;
     const frameX = this.currentFrame * this.frameWidth;
-    
+
     context.save();
     if (this.direction === -1) {
       context.scale(-1, 1);
       context.drawImage(
         this.image,
-        frameX, 0, this.frameWidth, this.frameHeight,
-        -this.position.x - this.width, 
+        frameX,
+        0,
+        this.frameWidth,
+        this.frameHeight,
+        -this.position.x - this.width,
         this.position.y,
         this.width,
         this.height
@@ -577,7 +584,10 @@ class SeedProjectile {
     } else {
       context.drawImage(
         this.image,
-        frameX, 0, this.frameWidth, this.frameHeight,
+        frameX,
+        0,
+        this.frameWidth,
+        this.frameHeight,
         this.position.x,
         this.position.y,
         this.width,

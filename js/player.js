@@ -1,7 +1,4 @@
-import { Sprite, collision, platformCollision } from "./sprites.js";
-import { Projectile } from "./projectile.js";
-
-export class Player extends Sprite {
+class Player extends Sprite {
   constructor() {
     super({
       position: { x: 100, y: 100 },
