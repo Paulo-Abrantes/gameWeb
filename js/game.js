@@ -98,6 +98,7 @@ const player = new Player();
 const enemies = [];
 const platforms = [];
 const solidPlatforms = [];
+const sprites = [];
 
 let lastTime;
 
@@ -319,8 +320,48 @@ function animate() {
   }
 
   // [ATUALIZAÇÃO DE INIMIGOS]
-  for (const enemy of enemies) {
-    enemy.update(deltaTime);
+ // [ATUALIZAÇÃO DE INIMIGOS E COLISÃO]
+  // (Loop 'for' reverso para permitir remoção segura com 'splice')
+  for (let i = enemies.length - 1; i >= 0; i--) {
+    const enemy = enemies[i];
+    enemy.update(deltaTime); // Atualiza o inimigo
+
+    // --- LÓGICA DE DERROTA DO CEREJINHA ---
+    // Verifica se o inimigo é da classe Cerejinha
+    if (enemy instanceof Cerejinha) {
+      
+      // 1. Checar "Pulo na Cabeça" (Stomp)
+      // Usamos a função 'platformCollision' (de sprites.js) para checar
+      // se a base do jogador está colidindo com o topo do inimigo.
+      const isStomping = platformCollision({
+        object1: player.hitbox,
+        object2: enemy.hitbox,
+      }) && player.velocity.y > 0; // Confirma que o jogador está caindo
+
+      if (isStomping) {
+        // Faz o jogador pular um pouco (bounce)
+        player.velocity.y = -4; 
+
+        // Adiciona a animação de morte no local do inimigo
+        sprites.push(new DeathAnimation({
+          position: { x: enemy.position.x, y: enemy.position.y },
+          imageSrc: './Sprite Pack 8/enemy-death.png',
+          frameWidth: 32,    // Largura de cada frame da animação de morte
+          frameHeight: 32,   // Altura
+          totalFrames: 6,    // A imagem 'enemy-death.png' tem 6 frames
+          frameInterval: 8   // Velocidade da animação (ticks)
+        }));
+
+        // Remove o inimigo do jogo
+        enemies.splice(i, 1);
+      
+      } else if (collision({ object1: player.hitbox, object2: enemy.hitbox })) {
+        // 2. Checar Colisão Lateral (Jogador se machuca)
+        // (Aqui entraria a lógica de dano ao jogador, se houvesse)
+        console.log("Jogador colidiu lateralmente com Cerejinha");
+      }
+    }
+    // (Você pode adicionar 'else if (enemy instanceof Astro)' etc. aqui)
   }
 
   // --- CÂMERA: POSICIONAMENTO E LIMITES ---
@@ -403,6 +444,25 @@ function animate() {
   for (const enemy of enemies) {
     enemy.draw(context);
   }
+
+// Inimigos (desenho)
+  for (const enemy of enemies) {
+    enemy.draw(context);
+  }
+
+  // --- ADICIONE ESTE BLOCO ---
+  // Desenha e atualiza as animações (ex: morte)
+  for (let i = sprites.length - 1; i >= 0; i--) {
+    const sprite = sprites[i];
+    
+    if (sprite.done) {
+      sprites.splice(i, 1); // Remove a animação se ela já terminou
+    } else {
+      sprite.update(); // (Usa o timer interno, não deltaTime)
+      sprite.draw(context);
+    }
+  }
+  // --- FIM DO BLOCO ADICIONADO ---
 
   // Jogador
   player.draw(context);

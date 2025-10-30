@@ -134,12 +134,12 @@ class Player {
     this.frameTimer = 0;
     this.frameInterval = 10;
 
-    /* // A hitbox é a "caixa" que detecta colisões do jogador
+    /* // A hitbox é a "caixa" que detecta colisões do jogador*/ 
     this.hitbox = {
       position: this.position,
       width: this.width,
       height: this.height,
-    }; */
+    }; 
   }
 
   switchState(state) {
@@ -337,6 +337,8 @@ class Player {
   // --- FUNÇÃO PRINCIPAL DE ATUALIZAÇÃO ---
   // Essa função roda a cada frame e controla todo o comportamento do jogador
   update(worldHeight, worldWidth, platforms = [], solidPlatforms = [], input) {
+    this.updateHitbox(); // <-- ADICIONE ESTA LINHA
+
     // movimentação e física
     this.move(input);
     this.position.x += this.velocity.x;
@@ -414,5 +416,68 @@ class Projectile {
       );
     }
     context.restore();
+  }
+}
+// --- CLASSE PARA ANIMAÇÃO DE MORTE ---
+// Adicionada para lidar com a explosão dos inimigos
+class DeathAnimation extends Sprite {
+  constructor({ position, imageSrc, frameWidth, frameHeight, totalFrames, frameInterval = 10 }) {
+    // Chama o construtor base do Sprite (que só define 'position' e 'imageSrc')
+    super({ position, imageSrc });
+
+    // Carrega a imagem da animação
+    this.image = new Image();
+    this.image.onload = () => {
+      this.loaded = true;
+      // Define a largura e altura baseadas no frame, não na imagem inteira
+      this.width = frameWidth; 
+      this.height = frameHeight;
+    };
+    this.image.src = imageSrc;
+
+    // Controle de animação (baseado na lógica da classe Player neste mesmo arquivo)
+    this.frameWidth = frameWidth;
+    this.frameHeight = frameHeight;
+    this.maxFrames = totalFrames; // Total de frames na spritesheet
+    this.frameX = 0; // Frame atual
+    this.frameTimer = 0;
+    this.frameInterval = frameInterval; // Velocidade da animação
+    
+    this.done = false; // Flag para saber se a animação terminou
+  }
+
+  // Método de atualização (usa o timer interno, como a classe Player)
+  update() { 
+    if (this.done || !this.loaded) return;
+
+    this.frameTimer++;
+    if (this.frameTimer >= this.frameInterval) {
+      this.frameX++; // Avança para o próximo frame
+      
+      if (this.frameX >= this.maxFrames) {
+        this.done = true; // Marca a animação como concluída
+        this.frameX = this.maxFrames - 1; // Trava no último frame
+      }
+      this.frameTimer = 0;
+    }
+  }
+
+  // Método de desenho
+  draw(context) {
+    if (this.done || !this.loaded) return; // Não desenha se já terminou
+
+    const frameX_coord = this.frameX * this.frameWidth;
+
+    context.drawImage(
+      this.image,
+      frameX_coord,
+      0, // Assume que o spritesheet é uma faixa horizontal
+      this.frameWidth,
+      this.frameHeight,
+      this.position.x,
+      this.position.y,
+      this.width,
+      this.height
+    );
   }
 }
