@@ -328,7 +328,6 @@ class Player {
     if (this.currentState !== "hurt") {
       this.position.x += this.velocity.x * deltaTime;
     }
-  }
 
     this.applyGravity(deltaTime);
     this.position.y += this.velocity.y * deltaTime;

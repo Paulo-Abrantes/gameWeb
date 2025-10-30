@@ -52,10 +52,7 @@ const cloudCover1_2 = new Sprite({ position: { x: 288, y: 0 }, imageSrc: "" });
 const cloudCover2 = new Sprite({ position: { x: 0, y: 0 }, imageSrc: "" });
 const cloudCover2_2 = new Sprite({ position: { x: 288, y: 0 }, imageSrc: "" });
 const distantHills = new Sprite({ position: { x: 0, y: 0 }, imageSrc: "" });
-const foregroundScenery = new Sprite({
-  position: { x: 0, y: 0 },
-  imageSrc: "",
-});
+const foregroundScenery = new Sprite({ position: { x: 0, y: 0 }, imageSrc: "" });
 
 const backgroundLayers = [
   skyColor,
@@ -451,10 +448,7 @@ checkSceneTransition();
   camera.position.y = -player.position.y + scaledCanvas.height / 2;
 
   if (camera.position.x > 0) camera.position.x = 0;
-  if (
-    worldWidth > scaledCanvas.width &&
-    camera.position.x < -(worldWidth - scaledCanvas.width)
-  ) {
+  if (worldWidth > scaledCanvas.width && camera.position.x < -(worldWidth - scaledCanvas.width)) {
     camera.position.x = -(worldWidth - scaledCanvas.width);
   }
   if (camera.position.y > 0) camera.position.y = 0;
@@ -477,16 +471,12 @@ checkSceneTransition();
   const layerWidth = 288;
   cloudCover1.position.x -= CLOUD_SPEED_1 * deltaTime;
   cloudCover1_2.position.x -= CLOUD_SPEED_1 * deltaTime;
-  if (cloudCover1.position.x < -layerWidth)
-    cloudCover1.position.x += layerWidth * 2;
-  if (cloudCover1_2.position.x < -layerWidth)
-    cloudCover1_2.position.x += layerWidth * 2;
+  if (cloudCover1.position.x < -layerWidth) cloudCover1.position.x += layerWidth * 2;
+  if (cloudCover1_2.position.x < -layerWidth) cloudCover1_2.position.x += layerWidth * 2;
   cloudCover2.position.x -= CLOUD_SPEED_2 * deltaTime;
   cloudCover2_2.position.x -= CLOUD_SPEED_2 * deltaTime;
-  if (cloudCover2.position.x < -layerWidth)
-    cloudCover2.position.x += layerWidth * 2;
-  if (cloudCover2_2.position.x < -layerWidth)
-    cloudCover2_2.position.x += layerWidth * 2;
+  if (cloudCover2.position.x < -layerWidth) cloudCover2.position.x += layerWidth * 2;
+  if (cloudCover2_2.position.x < -layerWidth) cloudCover2_2.position.x += layerWidth * 2;
 
   for (let i = 0; i < 4; i++) {
     const layer = backgroundLayers[layerIndex + i];
@@ -593,72 +583,6 @@ checkSceneTransition();
     context.fillText("Você completou todos os níveis!", canvas.width / 2 - 180, canvas.height / 2 + 20);
   }
 
-  context.save();
-  context.font = "16px Arial";
-  context.fillStyle = "white";
-
-  // Desenha o Nível
-  const levelText = `NIVEL: ${currentLevel} / ${TOTAL_LEVELS}`;
-  context.fillText(levelText, 10, 20);
-
-//vidas do player (coraçao)
-  if (heartLoaded) {
-    const heartFullCrop = { x: 0, y: 0, width: 61, height: 41 };
-    const heartEmptyCrop = { x: 61, y: 0, width: 65, height: 41 };
-
-    const maxLives = 3; 
-    
-    const drawWidth = 30.5; 
-    const drawHeight = 20.5; 
-    
-    const startX = 10; 
-    const startY = 25; 
-    const spacing = 40; 
-
-    for (let i = 0; i < maxLives; i++) {
-      // Decide qual coração desenhar
-      const crop = (i < player.lives) ? heartFullCrop : heartEmptyCrop;
-      
-      context.drawImage(
-        heartImage,
-        crop.x,
-        crop.y,
-        crop.width,
-        crop.height,
-        startX + (i * spacing), 
-        startY,                 
-        drawWidth,              
-        drawHeight              
-      );
-    }
-  } else {
-    
-    const livesText = `VIDAS: ${player.lives}`;
-    context.fillText(livesText, 10, 40);
-  }
-
-  // qtd de inimigos 
-  const enemiesText = `INIMIGOS: ${window.remainingEnemies}`;
-  context.fillText(enemiesText, 10, 60); 
-  
-  //game over
-  if (player.isDead) {
-    context.fillStyle = "rgba(0, 0, 0, 0.5)";
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    context.fillStyle = "red";
-    context.font = "40px Arial";
-    context.fillText("GAME OVER", canvas.width / 2 - 100, canvas.height / 2);
-    return;
-  }
-
-  if (window.gameWon) {
-    context.fillStyle = "rgba(0, 0, 0, 0.5)";
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    context.fillStyle = "lime";
-    context.font = "40px Arial";
-    context.fillText("YOU WIN!", canvas.width / 2 - 80, canvas.height / 2);
-    return;
-  }
   context.restore();
 }
 
