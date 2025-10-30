@@ -1,71 +1,67 @@
-// --- CLASSE Astro (Modificada para Atacar) ---
+// movimentos/comportamento do inimigo astro
+const ASTRO_X_VELOCITY = 15;
+const ASTRO_GRAVITY = 60;
+const ASTRO_JUMP_POWER = 60;
+const ASTRO_HOP_GAP = 0.25;
 
-// --- CONSTANTES DE MOVIMENTO ---
-const ASTRO_X_VELOCITY = 15;   // Velocidade horizontal (px/s)
-const ASTRO_GRAVITY = 60;      // Gravidade (px/s²)
-const ASTRO_JUMP_POWER = 60;   // Força do pulo (px/s)
-const ASTRO_HOP_GAP = 0.25;    // Intervalo entre pulos (s)
-
-// --- CONSTANTES DE ATAQUE (NOVO) ---
-const ASTRO_ATTACK_RANGE = 30;     // Distância (px) para o Astro decidir atacar
-const ASTRO_ATTACK_COOLDOWN = 2.0; // Cooldown de 2s entre socos
-const ASTRO_PUNCH_FRAME_MS = 80;   // Velocidade da animação de soco (ms)
-const ASTRO_PUNCH_ACTIVE_FRAME = 3;// Frame da animação que causa dano (0-6)
+//distancia, cooldown, velocidade e frame do soco
+const ASTRO_ATTACK_RANGE = 30;
+const ASTRO_ATTACK_COOLDOWN = 2.0;
+const ASTRO_PUNCH_FRAME_MS = 80;
+const ASTRO_PUNCH_ACTIVE_FRAME = 3;
 
 class Astro {
   constructor({ x, y, patrolStartX = 148, patrolEndX = 231 }) {
     this.position = { x, y };
     this.velocity = { x: -ASTRO_X_VELOCITY, y: 0 };
 
-    // Escala e dimensões
+    // escala e dimensoes
     this.frameWidth = 32;
     this.frameHeight = 32;
     this.width = 20;
     this.height = 20;
 
-    // Alinhamento com o chão
+    // alinhamento com o chao
     this.spriteBaselineHeight = 32;
     this.groundBottom = y + this.spriteBaselineHeight;
 
-    // Estado inicial
+    // estado inicial
     this.facing = 'left';
     this.state = 'run'; // 'run', 'air', 'attack'
 
-    // Controle de animação
+    // animacao
     this.elapsedMs = 0;
     this.currentFrame = 0;
     this.frameInterval = 90;
 
-    // (MODIFICADO) Carrega sprites
+    // carrega sprites
     this.images = {
       run: new Image(),
       jump: new Image(),
-      attack: new Image() // (NOVO)
+      attack: new Image()
     };
     this.images.run.src = './Sprite Pack 8/1 - Astro/Run (32 x 32).png';
     this.images.jump.src = './Sprite Pack 8/1 - Astro/Jump (32 x 32).png';
-    // (NOVO) Caminho do soco (usei o que você indicou)
     this.images.attack.src = './Sprite Pack 8/1 - Astro/Half_Health_Punch (32 x 32).png';
     this.image = this.images.run;
 
-    // (MODIFICADO) Total de frames
     this.totalFrames = { run: 6, jump: 1, attack: 7 }; // Soco tem 7 frames
 
-    // Patrulha
+    // patrulha
     this.patrolStartX = patrolStartX;
     this.patrolEndX = patrolEndX;
     this.hopTimer = ASTRO_HOP_GAP;
 
-    // (NOVO) Lógica de Ataque
+    // logica de ataque
     this.attackCooldown = 0.0;
     this.attackHitbox = {
       position: { x: 0, y: 0 },
-      width: 10,  // Largura do soco
-      height: 5, // Altura do soco
+      width: 10,  // largura soco
+      height: 5, // altura soco
       isActive: false
     };
 
-    // Hitbox principal (para ser pisado)
+    // hitbox principal (para pisar)
     this.hitbox = {
       position: { x: this.position.x + 3, y: this.position.y + 3 },
       width: 14,
@@ -73,7 +69,7 @@ class Astro {
     };
   }
 
-  // (MODIFICADO) Gerencia os estados, incluindo 'attack'
+  // gerencia estados (run, air, attack)
   switchState(state) {
     if (this.state === state) return;
     this.state = state;
@@ -89,20 +85,20 @@ class Astro {
         this.image = this.images.jump;
         this.frameInterval = 120; // ms
         break;
-      case 'attack': // (NOVO)
+      case 'attack':
         this.image = this.images.attack;
         this.frameInterval = ASTRO_PUNCH_FRAME_MS;
-        this.attackHitbox.isActive = false; // Garante que a hitbox de soco comece inativa
+        this.attackHitbox.isActive = false; // garante hitbox inativa
         break;
     }
   }
 
-  // (NOVO) Posiciona a hitbox do soco na frente do Astro
+  // posiciona a hitbox do soco
   activatePunchHitbox() {
-    // Posição Y (meio do corpo)
+    // pos Y (meio)
     this.attackHitbox.position.y = this.position.y + (this.height / 2) - (this.attackHitbox.height / 2);
     
-    // Posição X (depende da direção)
+    // pos X (depende da direcao)
     if (this.facing === 'right') {
       this.attackHitbox.position.x = this.position.x + this.width;
     } else { // 'left'
@@ -111,31 +107,30 @@ class Astro {
     this.attackHitbox.isActive = true;
   }
 
-  // (NOVO) Verifica se o player está próximo e inicia o ataque
+  // checa se player esta perto e inicia ataque
   attemptAttack(player) {
     if (this.attackCooldown > 0 || this.state !== 'run') return false;
 
-    // Calcula a distância do jogador
+    // calcula distancia
     const dx = player.position.x - this.position.x;
     const dy = player.position.y - this.position.y;
-    // Usamos distância X e Y separadas para criar uma "área" de detecção
     const distanceX = Math.abs(dx);
     const distanceY = Math.abs(dy);
 
-    // Se o player está perto, no mesmo nível, e o Astro está no chão
+    // se player perto e astro no chao
     if (distanceX < ASTRO_ATTACK_RANGE && distanceY < (this.height * 2) && this.state === 'run') {
-      // Vira para o jogador
+      // vira para o jogador
       this.facing = (dx > 0) ? 'right' : 'left';
       
       this.switchState('attack');
-      this.velocity.x = 0; // Para de andar para atacar
-      this.attackCooldown = ASTRO_ATTACK_COOLDOWN; // Reinicia o cooldown
-      return true; // Conseguiu atacar
+      this.velocity.x = 0; // para de andar
+      this.attackCooldown = ASTRO_ATTACK_COOLDOWN; // reinicia cooldown
+      return true; // atacou
     }
-    return false; // Não atacou
+    return false; // nao atacou
   }
 
-  // (MODIFICADO) Animação agora também checa o frame de soco
+  // animacao e gatilho do soco
   updateAnimation(dt, player) {
     this.elapsedMs += dt * 1000;
     
@@ -150,71 +145,70 @@ class Astro {
       this.elapsedMs -= this.frameInterval;
       this.currentFrame = (this.currentFrame + 1);
 
-      // (NOVO) Lógica do soco
+      // logica do soco
       if (this.state === 'attack') {
         if (this.currentFrame === ASTRO_PUNCH_ACTIVE_FRAME) {
-          // Ativa a hitbox e checa colisão no exato frame do soco
+          // ativa hitbox e checa colisao no frame exato
           this.activatePunchHitbox();
           
           if (this.attackHitbox.isActive && collision({ object1: this.attackHitbox, object2: player.hitbox })) {
             console.log("ASTRO ATINGIU O JOGADOR!");
-            // (Aqui entraria a lógica de dano ao jogador, ex: player.takeDamage())
-            this.attackHitbox.isActive = false; // Desativa para não dar hit duplo
+            // (logica de dano ao player aqui)
+            this.attackHitbox.isActive = false; // desativa p/ nao dar hit duplo
           }
         } else {
-          // Garante que a hitbox só fique ativa no frame certo
+          // garante hitbox ativa so no frame certo
           this.attackHitbox.isActive = false;
         }
       }
 
-      // (MODIFICADO) Reset de frame
+      // reset de frame
       if (this.currentFrame >= frames) {
-        this.currentFrame = 0; // Reinicia a animação
+        this.currentFrame = 0; // reinicia animacao
         if (this.state === 'attack') {
-          this.switchState('run'); // Terminou o soco, volta a correr
+          this.switchState('run'); // terminou soco, volta a correr
         }
       }
     }
   }
 
-  // (MODIFICADO) Lógica principal de update
+  // logica principal
   update(dt, player) {
-    if (!dt) return; // 'player' é passado pelo game.js
+    if (!dt) return; // player vem do game.js
 
-    // 1. Atualiza cooldown
+    // 1. atualiza cooldown
     if (this.attackCooldown > 0) {
       this.attackCooldown -= dt;
     }
 
-    // 2. Atualiza animação (e checa colisão do soco)
+    // 2. atualiza animacao (e checa soco)
     this.updateAnimation(dt, player);
 
-    // 3. Lógica de Estado
+    // 3. logica de estado
     if (this.state === 'attack') {
-      // Se está atacando, fica parado (this.velocity.x = 0)
-      // e só sofre gravidade.
+      // atacando: fica parado, so gravidade
       this.velocity.y += ASTRO_GRAVITY * dt;
       this.position.y += this.velocity.y * dt;
 
-      // Toca o chão
+      // toca o chao
       if (this.position.y >= this.groundBottom - this.height) {
         this.position.y = this.groundBottom - this.height;
         this.velocity.y = 0;
       }
     } else {
-      // Se não está atacando ('run' or 'air'), tenta atacar ou se move.
+      // nao atacando (run/air): tenta atacar ou se move
       
-      // Tenta iniciar um ataque (só funciona se estiver no chão 'run')
+      // tenta iniciar ataque (so no chao)
       const didAttack = this.attemptAttack(player);
 
       if (!didAttack) {
-        // 4. Se não atacou, faz a patrulha e pulos (lógica original)
+        // 4. se nao atacou, patrulha e pulos
         
-        // Movimento horizontal
+        // movimento horizontal
         this.velocity.x = (this.facing === 'right') ? ASTRO_X_VELOCITY : -ASTRO_X_VELOCITY;
         this.position.x += this.velocity.x * dt;
 
-        // Patrulha lateral
+        // patrulha lateral
         if (this.position.x + this.width >= this.patrolEndX && this.velocity.x > 0) {
           this.velocity.x = -ASTRO_X_VELOCITY;
           this.facing = 'left';
@@ -223,17 +217,17 @@ class Astro {
           this.facing = 'right';
         }
 
-        // Física vertical (pulinhos)
+        // fisica vertical (pulinhos)
         this.velocity.y += ASTRO_GRAVITY * dt;
         this.position.y += this.velocity.y * dt;
 
-        // Toca o chão → reinicia pulo
+        // toca o chao -> reinicia pulo
         if (this.position.y >= this.groundBottom - this.height) {
           this.position.y = this.groundBottom - this.height;
           this.velocity.y = 0;
           this.switchState('run');
 
-          // Timer do pulo
+          // timer do pulo
           this.hopTimer -= dt;
           if (this.hopTimer <= 0) {
             this.velocity.y = -ASTRO_JUMP_POWER;
@@ -246,16 +240,16 @@ class Astro {
       }
     }
     
-    // 5. Atualiza hitbox principal (para ser pisado)
+    // 5. atualiza hitbox principal (para pisar)
     this.hitbox.position.x = this.position.x + 3;
     this.hitbox.position.y = this.position.y + 3;
   }
 
-  // (MODIFICADO) Desenha o Astro
+  // desenha o astro
   draw(context) {
     if (!this.image || !this.image.complete) return;
 
-    // Pega o total de frames do estado atual
+    // pega total de frames do estado atual
     let frames = 0;
     if (this.state === 'run') frames = this.totalFrames.run;
     else if (this.state === 'air') frames = this.totalFrames.jump;
@@ -283,20 +277,6 @@ class Astro {
     }
     context.restore();
 
-    // --- DEBUG: Descomente para ver a hitbox do soco ---
-    /*
-    if (this.attackHitbox.isActive) {
-      context.save();
-      context.fillStyle = 'rgba(255, 0, 0, 0.5)';
-      context.fillRect(
-        this.attackHitbox.position.x,
-        this.attackHitbox.position.y,
-        this.attackHitbox.width,
-        this.attackHitbox.height
-      );
-      context.restore();
-    }
-    */
-    // --- FIM DEBUG ---
+    
   }
 }
