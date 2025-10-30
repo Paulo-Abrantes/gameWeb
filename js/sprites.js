@@ -481,3 +481,83 @@ class DeathAnimation extends Sprite {
     );
   }
 }
+
+
+class SeedProjectile {
+  constructor({ position, direction }) {
+    this.position = position;
+    this.direction = direction; // 1 = direita, -1 = esquerda
+    
+    // Velocidade (px por segundo)
+    this.velocity = { x: 80 * this.direction, y: 0 }; 
+
+    // Imagem e animação
+    this.image = new Image();
+    this.image.src = './Sprite Pack 8/3 - Cebolete/Seed_Launch (8 x 8).png';
+    this.loaded = false;
+    this.image.onload = () => {
+      this.loaded = true;
+    };
+
+    // Dimensões
+    this.width = 8;
+    this.height = 8;
+    this.frameWidth = 8;
+    this.frameHeight = 8;
+    this.maxFrames = 2; // A imagem Seed_Launch tem 2 frames
+    
+    // Controle da animação
+    this.currentFrame = 0;
+    this.elapsedMs = 0;
+    this.frameInterval = 150; // ms (velocidade da rotação da semente)
+  }
+
+  // Anima a semente
+  updateAnimation(dt) {
+    if (!this.loaded) return;
+
+    this.elapsedMs += dt * 1000;
+    if (this.elapsedMs >= this.frameInterval) {
+      this.elapsedMs -= this.frameInterval;
+      this.currentFrame = (this.currentFrame + 1) % this.maxFrames;
+    }
+  }
+
+  // Move a semente
+  update(dt) {
+    this.updateAnimation(dt);
+    this.position.x += this.velocity.x * dt;
+  }
+
+  // Desenha a semente
+  draw(context) {
+    if (!this.loaded) return;
+
+    const frameX = this.currentFrame * this.frameWidth;
+    
+    // Usa o mesmo save/scale/restore do projétil da flecha
+    // para inverter a imagem se estiver indo para a esquerda.
+    context.save();
+    if (this.direction === -1) {
+      context.scale(-1, 1);
+      context.drawImage(
+        this.image,
+        frameX, 0, this.frameWidth, this.frameHeight,
+        -this.position.x - this.width, // Posição invertida
+        this.position.y,
+        this.width,
+        this.height
+      );
+    } else {
+      context.drawImage(
+        this.image,
+        frameX, 0, this.frameWidth, this.frameHeight,
+        this.position.x,
+        this.position.y,
+        this.width,
+        this.height
+      );
+    }
+    context.restore();
+  }
+}
