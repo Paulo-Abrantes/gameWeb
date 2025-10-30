@@ -521,20 +521,18 @@ class DeathAnimation extends Sprite {
     );
   }
 }
-<<<<<<< HEAD
-
 
 class SeedProjectile {
   constructor({ position, direction }) {
     this.position = position;
     this.direction = direction; // 1 = direita, -1 = esquerda
-    
+
     // Velocidade (px por segundo)
-    this.velocity = { x: 80 * this.direction, y: 0 }; 
+    this.velocity = { x: 80 * this.direction, y: 0 };
 
     // Imagem e animação
     this.image = new Image();
-    this.image.src = './Sprite Pack 8/3 - Cebolete/Seed_Launch (8 x 8).png';
+    this.image.src = "./Sprite Pack 8/3 - Cebolete/Seed_Launch (8 x 8).png";
     this.loaded = false;
     this.image.onload = () => {
       this.loaded = true;
@@ -546,7 +544,7 @@ class SeedProjectile {
     this.frameWidth = 8;
     this.frameHeight = 8;
     this.maxFrames = 2; // A imagem Seed_Launch tem 2 frames
-    
+
     // Controle da animação
     this.currentFrame = 0;
     this.elapsedMs = 0;
@@ -575,7 +573,7 @@ class SeedProjectile {
     if (!this.loaded) return;
 
     const frameX = this.currentFrame * this.frameWidth;
-    
+
     // Usa o mesmo save/scale/restore do projétil da flecha
     // para inverter a imagem se estiver indo para a esquerda.
     context.save();
@@ -583,7 +581,10 @@ class SeedProjectile {
       context.scale(-1, 1);
       context.drawImage(
         this.image,
-        frameX, 0, this.frameWidth, this.frameHeight,
+        frameX,
+        0,
+        this.frameWidth,
+        this.frameHeight,
         -this.position.x - this.width, // Posição invertida
         this.position.y,
         this.width,
@@ -592,7 +593,10 @@ class SeedProjectile {
     } else {
       context.drawImage(
         this.image,
-        frameX, 0, this.frameWidth, this.frameHeight,
+        frameX,
+        0,
+        this.frameWidth,
+        this.frameHeight,
         this.position.x,
         this.position.y,
         this.width,
@@ -602,5 +606,3 @@ class SeedProjectile {
     context.restore();
   }
 }
-=======
->>>>>>> a2483e4c553ea6ceb2fb14cc885d9ec359dbe9d6
