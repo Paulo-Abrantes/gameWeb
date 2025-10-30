@@ -236,18 +236,16 @@ waterImage.onload = () => {
 
   // posições iniciais
   const cerejinhaX = 150;
-  const astroX = 185;
+  const astroX     = 185;
+  const ceboleteX  = 210;
 
-  const cerejinha = new Cerejinha({
-    x: cerejinhaX,
-    y: spawnY,
-    patrolStartX,
-    patrolEndX,
-  });
-  const astro = new Astro({ x: astroX, y: spawnY, patrolStartX, patrolEndX });
-  enemies.push(cerejinha, astro);
+  const cerejinha = new Cerejinha({ x: cerejinhaX, y: spawnY, patrolStartX, patrolEndX });
+  const astro     = new Astro({      x: astroX,     y: spawnY, patrolStartX, patrolEndX });
+  const cebolete  = new Cebolete({   x: ceboleteX,  y: spawnY, patrolStartX, patrolEndX });
 
-  console.log("Enemies spawned:", enemies.length);
+  enemies.push(cerejinha, astro, cebolete);
+
+  console.log('Enemies spawned:', enemies.length);
 };
 
 // --- OBJETO CÂMERA ---
