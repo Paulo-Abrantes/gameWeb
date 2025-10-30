@@ -1,27 +1,24 @@
-// --- CLASSE Cerejinha (Inimigo) ---
-const CEREJINHA_X_VELOCITY = 20; // Velocidade de movimento do Cerejinha
+const CEREJINHA_X_VELOCITY = 20; 
 
 class Cerejinha {
   constructor({ x, y, patrolStartX = 148, patrolEndX = 231 }) {
     this.position = { x, y };
     this.velocity = { x: CEREJINHA_X_VELOCITY, y: 0 };
 
-    // Escala reduzida (mantém proporção visual semelhante ao Cebolete)
     this.frameWidth = 32;
     this.frameHeight = 32;
-    this.width = 20;
-    this.height = 20;
+    this.width = 25;
+    this.height = 30;
 
-    // Corrige o alinhamento com o chão
-    this.spriteBaselineHeight = 32;           // sprite original
-    this.groundBottom = y + this.spriteBaselineHeight; // base do chão
-
+    // alinhamento com o chao
+    this.spriteBaselineHeight = 32;           
+    this.groundBottom = y + this.spriteBaselineHeight; 
     this.isImageLoaded = false;
     this.image = new Image();
     this.image.onload = () => {
       this.isImageLoaded = true;
     };
-    // Caminho para a imagem do Cerejinha
+
     this.image.src = './Sprite Pack 8/4 - Cerejinha/Running (32 x 32).png';
 
     this.elapsedTime = 0;
@@ -29,11 +26,11 @@ class Cerejinha {
     this.totalFrames = 6;
     this.facing = 'right';
 
-    // Limites de patrulha
+    // limites de patrulha
     this.patrolStartX = patrolStartX;
     this.patrolEndX   = patrolEndX;
 
-    // Hitbox proporcional
+    // hitbox proporcional
     this.hitbox = {
       position: { x: this.position.x + 3, y: this.position.y + 3 },
       width: 14,
@@ -80,16 +77,15 @@ class Cerejinha {
 
     this.updateAnimation(deltaTime);
 
-    // Movimento horizontal
+    // movimento horizontal
     this.position.x += this.velocity.x * deltaTime;
 
-    // Mantém o alinhamento do chão com base na altura reduzida
     const bottom = this.position.y + this.height;
     if (bottom !== this.groundBottom) {
       this.position.y = this.groundBottom - this.height;
     }
 
-    // Verifica limites da patrulha
+    // verifica limites
     if (this.position.x + this.width >= this.patrolEndX && this.velocity.x > 0) {
       this.velocity.x = -CEREJINHA_X_VELOCITY;
       this.facing = 'left';
@@ -98,7 +94,7 @@ class Cerejinha {
       this.facing = 'right';
     }
 
-    // Atualiza hitbox
+    // atualiza 
     this.hitbox.position.x = this.position.x + 3;
     this.hitbox.position.y = this.position.y + 3;
   }
