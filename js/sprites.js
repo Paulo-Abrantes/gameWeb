@@ -1,7 +1,8 @@
-// --- FUNÇÕES DE COLISÃO ---
-// Essas funções servem pra saber se dois objetos estão se encostando
-// Uma verifica colisão em todos os lados e a outra só quando o jogador pisa em cima
+const globalArrowImage = new Image();
+globalArrowImage.src =
+  "./Sprite Pack 8/2 - Tracy/Arrow_Projectile (16 x 16).png";
 
+// FUNÇÕES DE COLISÃO
 // Detecta colisão completa (todos os lados)
 function collision({ object1, object2 }) {
   return (
@@ -226,6 +227,7 @@ class Player {
         y: this.position.y + this.height / 2 - 4,
       },
       direction: this.direction,
+      image: globalArrowImage, // <-- ADICIONE ESTA LINHA
     });
     this.projectiles.push(arrow);
   }
@@ -412,15 +414,14 @@ class Player {
 }
 
 class Projectile {
-  constructor({ position, direction }) {
+  constructor({ position, direction, image }) {
     this.position = position;
     this.direction = direction;
     this.speed = 5 * direction;
     this.width = 16;
     this.height = 4;
 
-    this.image = new Image();
-    this.image.src = "./sprites/projectiles/arrow.png";
+    this.image = image;
   }
 
   update() {
