@@ -1,12 +1,21 @@
-// --- CLASSE Cerejinha(Inimigo) ---
+// --- CLASSE Cerejinha (Inimigo) ---
 const CEREJINHA_X_VELOCITY = 20; // Velocidade de movimento do Cerejinha
 
 class Cerejinha {
   constructor({ x, y, patrolStartX = 148, patrolEndX = 231 }) {
-    this.position = { x: x, y: y };
-    this.velocity = { x: CEREJINHA_X_VELOCITY, y: 0 }; // Começa movendo para a direita
-    this.width = 32;  // Largura do frame do sprite
-    this.height = 32; // Altura do frame do sprite
+    this.position = { x, y };
+    this.velocity = { x: CEREJINHA_X_VELOCITY, y: 0 };
+
+    // Escala reduzida (mantém proporção visual semelhante ao Cebolete)
+    this.frameWidth = 32;
+    this.frameHeight = 32;
+    this.width = 20;
+    this.height = 20;
+
+    // Corrige o alinhamento com o chão
+    this.spriteBaselineHeight = 32;           // sprite original
+    this.groundBottom = y + this.spriteBaselineHeight; // base do chão
+
     this.isImageLoaded = false;
     this.image = new Image();
     this.image.onload = () => {
@@ -17,90 +26,80 @@ class Cerejinha {
 
     this.elapsedTime = 0;
     this.currentFrame = 0;
-    this.totalFrames = 6;   // A imagem Running (32x32).png tem 6 frames
-    this.frameWidth = 32;   // Largura de cada frame na imagem
-    this.frameHeight = 32;  // Altura de cada frame na imagem
+    this.totalFrames = 6;
+    this.facing = 'right';
 
-    this.facing = 'right';  // Direção inicial
-
-    // Limites de patrulha (agora configuráveis)
+    // Limites de patrulha
     this.patrolStartX = patrolStartX;
     this.patrolEndX   = patrolEndX;
 
-    // Hitbox (ajuste se necessário para colisões futuras)
+    // Hitbox proporcional
     this.hitbox = {
-      position: { x: this.position.x + 6, y: this.position.y + 6 }, // Offset da hitbox
-      width: 20,
-      height: 20,
+      position: { x: this.position.x + 3, y: this.position.y + 3 },
+      width: 14,
+      height: 14,
     };
   }
 
-  // Desenha o frame correto do Cerejinha
   draw(context) {
     if (!this.isImageLoaded) return;
 
     const frameX = this.currentFrame * this.frameWidth;
-    const frameY = 0; // A imagem só tem uma linha de frames
 
-    context.save(); // Salva o estado atual do contexto
-
-    // Se estiver virado para a esquerda, inverte o desenho horizontalmente
+    context.save();
     if (this.facing === 'left') {
-      context.scale(-1, 1); // Inverte horizontalmente
+      context.scale(-1, 1);
       context.drawImage(
         this.image,
-        frameX, frameY, this.frameWidth, this.frameHeight,
-        -this.position.x - this.width, // Posição X invertida
-        this.position.y,
+        frameX, 0, this.frameWidth, this.frameHeight,
+        -this.position.x - this.width, this.position.y,
         this.width, this.height
       );
     } else {
-      // Desenho normal (virado para a direita)
       context.drawImage(
         this.image,
-        frameX, frameY, this.frameWidth, this.frameHeight,
+        frameX, 0, this.frameWidth, this.frameHeight,
         this.position.x, this.position.y,
         this.width, this.height
       );
     }
-
     context.restore();
   }
 
-  // Atualiza a animação do sprite
   updateAnimation(deltaTime) {
-    this.elapsedTime += deltaTime * 1000; // deltaTime em segundos -> ms
-    const frameInterval = 100; // ms por frame
-
+    this.elapsedTime += deltaTime * 1000;
+    const frameInterval = 100;
     if (this.elapsedTime > frameInterval) {
       this.currentFrame = (this.currentFrame + 1) % this.totalFrames;
       this.elapsedTime -= frameInterval;
     }
   }
 
-  // Atualiza a posição e direção do Cerejinha
   update(deltaTime) {
     if (!deltaTime) return;
 
-    // Atualiza animação
     this.updateAnimation(deltaTime);
 
     // Movimento horizontal
     this.position.x += this.velocity.x * deltaTime;
 
+    // Mantém o alinhamento do chão com base na altura reduzida
+    const bottom = this.position.y + this.height;
+    if (bottom !== this.groundBottom) {
+      this.position.y = this.groundBottom - this.height;
+    }
+
     // Verifica limites da patrulha
     if (this.position.x + this.width >= this.patrolEndX && this.velocity.x > 0) {
-      // Chegou ao limite direito, inverte a direção
       this.velocity.x = -CEREJINHA_X_VELOCITY;
       this.facing = 'left';
     } else if (this.position.x <= this.patrolStartX && this.velocity.x < 0) {
-      // Chegou ao limite esquerdo, inverte a direção
       this.velocity.x = CEREJINHA_X_VELOCITY;
       this.facing = 'right';
     }
 
-    // Atualiza posição da hitbox
-    this.hitbox.position.x = this.position.x + 6;
-    this.hitbox.position.y = this.position.y + 6;
+    // Atualiza hitbox
+    this.hitbox.position.x = this.position.x + 3;
+    this.hitbox.position.y = this.position.y + 3;
   }
 }

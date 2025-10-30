@@ -1,107 +1,142 @@
-const ASTRO_X_VELOCITY = 15; // Velocidade de movimento do Astro
+// --- CLASSE Astro ---
+const ASTRO_X_VELOCITY = 15;   // Velocidade horizontal
+const ASTRO_GRAVITY = 60;     // Gravidade (px/s²)
+const ASTRO_JUMP_POWER = 60;   // Força do pulo (px/s)
+const ASTRO_HOP_GAP = 0.25;    // Intervalo entre pulos (s)
 
 class Astro {
   constructor({ x, y, patrolStartX = 148, patrolEndX = 231 }) {
-    this.position = { x: x, y: y };
-    // Começa movendo para a esquerda
+    this.position = { x, y };
     this.velocity = { x: -ASTRO_X_VELOCITY, y: 0 };
-    this.width = 32;  // Largura do frame do sprite
-    this.height = 32; // Altura do frame do sprite
-    this.isImageLoaded = false;
-    this.image = new Image();
-    this.image.onload = () => {
-      this.isImageLoaded = true;
-    };
-    // Caminho para a imagem do Astro
-    // (use "Running (32 x 32).png" se for o nome no seu asset)
-    this.image.src = './Sprite Pack 8/1 - Astro/Run (32 x 32).png';
 
-    this.elapsedTime = 0;
+    // Escala e dimensões
+    this.frameWidth = 32;
+    this.frameHeight = 32;
+    this.width = 20;
+    this.height = 20;
+
+    // Corrige alinhamento com o chão
+    this.spriteBaselineHeight = 32;
+    this.groundBottom = y + this.spriteBaselineHeight;
+
+    // Estado inicial
+    this.facing = 'left';
+    this.state = 'run'; // 'run' = chão | 'air' = pulando
+
+    // Controle de animação
+    this.elapsedMs = 0;
     this.currentFrame = 0;
-    this.totalFrames = 6;   // A imagem Run (32x32).png tem 6 frames
-    this.frameWidth = 32;   // Largura de cada frame na imagem
-    this.frameHeight = 32;  // Altura de cada frame na imagem
+    this.frameInterval = 90;
+    this.totalFrames = { run: 6, jump: 1 };
 
-    this.facing = 'left'; // Direção inicial (começa pela esquerda)
+    // Carrega sprites
+    this.images = {
+      run: new Image(),
+      jump: new Image()
+    };
+    this.images.run.src = './Sprite Pack 8/1 - Astro/Run (32 x 32).png';
+    this.images.jump.src = './Sprite Pack 8/1 - Astro/Jump (32 x 32).png';
+    this.image = this.images.run;
 
-    // Limites de patrulha (agora configuráveis)
+    // Patrulha
     this.patrolStartX = patrolStartX;
-    this.patrolEndX   = patrolEndX;
+    this.patrolEndX = patrolEndX;
 
-    // Hitbox (ajuste se necessário para colisões futuras)
+    // Temporizador do pulo
+    this.hopTimer = ASTRO_HOP_GAP;
+
+    // Hitbox
     this.hitbox = {
-      position: { x: this.position.x + 6, y: this.position.y + 6 }, // Offset da hitbox
-      width: 20,
-      height: 20,
+      position: { x: this.position.x + 3, y: this.position.y + 3 },
+      width: 14,
+      height: 14,
     };
   }
 
-  // Desenha o frame correto do Astro
-  draw(context) {
-    if (!this.isImageLoaded) return;
-
-    const frameX = this.currentFrame * this.frameWidth;
-    const frameY = 0; // A imagem só tem uma linha de frames
-
-    context.save(); // Salva o estado atual do contexto
-
-    // Se estiver virado para a esquerda, inverte o desenho horizontalmente
-    if (this.facing === 'left') {
-      context.scale(-1, 1); // Inverte horizontalmente
-      context.drawImage(
-        this.image,
-        frameX, frameY, this.frameWidth, this.frameHeight,
-        -this.position.x - this.width, // Posição X invertida
-        this.position.y,
-        this.width, this.height
-      );
-    } else {
-      // Desenho normal (virado para a direita)
-      context.drawImage(
-        this.image,
-        frameX, frameY, this.frameWidth, this.frameHeight,
-        this.position.x, this.position.y,
-        this.width, this.height
-      );
-    }
-
-    context.restore();
+  switchState(state) {
+    if (this.state === state) return;
+    this.state = state;
+    this.image = state === 'run' ? this.images.run : this.images.jump;
+    this.currentFrame = 0;
+    this.elapsedMs = 0;
+    this.frameInterval = state === 'run' ? 90 : 120;
   }
 
-  // Atualiza a animação do sprite
-  updateAnimation(deltaTime) {
-    this.elapsedTime += deltaTime * 1000; // deltaTime em segundos -> ms
-    const frameInterval = 100; // ms por frame
-
-    if (this.elapsedTime > frameInterval) {
-      this.currentFrame = (this.currentFrame + 1) % this.totalFrames;
-      this.elapsedTime -= frameInterval;
+  updateAnimation(dt) {
+    this.elapsedMs += dt * 1000;
+    const frames = this.state === 'run' ? this.totalFrames.run : this.totalFrames.jump;
+    if (this.elapsedMs >= this.frameInterval) {
+      this.currentFrame = (this.currentFrame + 1) % frames;
+      this.elapsedMs -= this.frameInterval;
     }
   }
 
-  // Atualiza a posição e direção do Astro
-  update(deltaTime) {
-    if (!deltaTime) return;
-
-    // Atualiza animação
-    this.updateAnimation(deltaTime);
+  update(dt) {
+    if (!dt) return;
 
     // Movimento horizontal
-    this.position.x += this.velocity.x * deltaTime;
+    this.position.x += this.velocity.x * dt;
 
-    // Verifica limites da patrulha
+    // Patrulha lateral
     if (this.position.x + this.width >= this.patrolEndX && this.velocity.x > 0) {
-      // Chegou ao limite direito, inverte a direção
       this.velocity.x = -ASTRO_X_VELOCITY;
       this.facing = 'left';
     } else if (this.position.x <= this.patrolStartX && this.velocity.x < 0) {
-      // Chegou ao limite esquerdo, inverte a direção
       this.velocity.x = ASTRO_X_VELOCITY;
       this.facing = 'right';
     }
 
-    // Atualiza posição da hitbox
-    this.hitbox.position.x = this.position.x + 6;
-    this.hitbox.position.y = this.position.y + 6;
+    // Física vertical (pulinhos)
+    this.velocity.y += ASTRO_GRAVITY * dt;
+    this.position.y += this.velocity.y * dt;
+
+    // Toca o chão → reinicia pulo
+    if (this.position.y >= this.groundBottom - this.height) {
+      this.position.y = this.groundBottom - this.height;
+      this.velocity.y = 0;
+
+      this.switchState('run');
+      this.hopTimer -= dt;
+      if (this.hopTimer <= 0) {
+        this.velocity.y = -ASTRO_JUMP_POWER;
+        this.switchState('air');
+        this.hopTimer = ASTRO_HOP_GAP;
+      }
+    } else {
+      this.switchState('air');
+    }
+
+    this.updateAnimation(dt);
+
+    // Atualiza hitbox
+    this.hitbox.position.x = this.position.x + 3;
+    this.hitbox.position.y = this.position.y + 3;
+  }
+
+  draw(context) {
+    if (!this.image || !this.image.complete) return;
+
+    const frames = this.state === 'run' ? this.totalFrames.run : this.totalFrames.jump;
+    const safeFrame = frames > 0 ? this.currentFrame % frames : 0;
+    const frameX = safeFrame * this.frameWidth;
+
+    context.save();
+    if (this.facing === 'left') {
+      context.scale(-1, 1);
+      context.drawImage(
+        this.image,
+        frameX, 0, this.frameWidth, this.frameHeight,
+        -this.position.x - this.width, this.position.y,
+        this.width, this.height
+      );
+    } else {
+      context.drawImage(
+        this.image,
+        frameX, 0, this.frameWidth, this.frameHeight,
+        this.position.x, this.position.y,
+        this.width, this.height
+      );
+    }
+    context.restore();
   }
 }
