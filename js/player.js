@@ -46,11 +46,6 @@ export class Player extends Sprite {
         frames: 4,
         interval: 50,
       },
-      reload: {
-        src: "./Sprite Pack 8/2 - Tracy/Reloading_Crossbow (32 x 32).png",
-        frames: 16,
-        interval: 40,
-      },
     };
     this.currentState = "idle";
 

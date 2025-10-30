@@ -1,7 +1,8 @@
-// --- FUNÇÕES DE COLISÃO ---
-// Essas funções servem pra saber se dois objetos estão se encostando
-// Uma verifica colisão em todos os lados e a outra só quando o jogador pisa em cima
+const globalArrowImage = new Image();
+globalArrowImage.src =
+  "./Sprite Pack 8/2 - Tracy/Arrow_Projectile (16 x 16).png";
 
+// FUNÇÕES DE COLISÃO
 // Detecta colisão completa (todos os lados)
 function collision({ object1, object2 }) {
   return (
@@ -102,10 +103,6 @@ class Player {
         src: "./Sprite Pack 8/2 - Tracy/Standing_Crossbow_Shot (32 x 32).png",
         frames: 4,
       },
-      reload: {
-        src: "./Sprite Pack 8/2 - Tracy/Reloading_Crossbow (32 x 32).png",
-        frames: 16,
-      },
     };
 
     this.currentState = "idle";
@@ -121,7 +118,23 @@ class Player {
     this.cooldown = 0; // tempo entre disparos
     this.projectiles = []; // flechas ativas
 
-    //carrega o sprite do player
+    this.images = {};
+    this.frameWidth = 32;
+    this.frameHeight = 32;
+
+    for (let state in this.animations) {
+      const animation = this.animations[state];
+      this.images[state] = new Image();
+      this.images[state].src = animation.src;
+    }
+
+    this.currentImage = this.images.idle;
+    this.maxFrames = this.animations.idle.frames;
+    this.frameX = 0;
+    this.frameTimer = 0;
+    this.frameInterval = 10;
+
+    /* //carrega o sprite do player
     this.image = new Image();
     this.image.src = "./Sprite Pack 8/2 - Tracy/Idle_1 (32 x 32).png";
 
@@ -132,23 +145,36 @@ class Player {
     this.frameWidth = 32;
     this.frameHeight = 32;
     this.frameTimer = 0;
-    this.frameInterval = 10;
+    this.frameInterval = 10; */
 
-    /* // A hitbox é a "caixa" que detecta colisões do jogador*/ 
+    // A hitbox é a "caixa" que detecta colisões do jogador
     this.hitbox = {
       position: this.position,
       width: this.width,
       height: this.height,
-    }; 
+    };
   }
 
   switchState(state) {
     if (this.currentState !== state) {
       this.currentState = state;
-      this.image.src = this.animations[state].src;
+
+      this.currentImage = this.images[state]; // Usa a imagem pré-carregada
+      if (!this.currentImage) {
+        console.error(`Imagem não encontrada para o estado: ${state}`);
+        this.currentImage = this.images.idle; // Garante que não quebre
+      }
+
       this.maxFrames = this.animations[state].frames;
       this.frameX = 0;
       this.frameTimer = 0;
+
+      // pega o intervalo de frames da animação, se definido
+      if (this.animations[state].interval) {
+        this.frameInterval = this.animations[state].interval / 10; // Ajuste se necessário
+      } else {
+        this.frameInterval = 10; // Padrão
+      }
     }
   }
 
@@ -159,6 +185,11 @@ class Player {
   }
 
   move(input) {
+    if (this.currentState === "attack") {
+      this.velocity.x = 0;
+      return;
+    }
+
     this.velocity.x = 0;
     if (input.left) {
       this.velocity.x = -2;
@@ -196,13 +227,9 @@ class Player {
         y: this.position.y + this.height / 2 - 4,
       },
       direction: this.direction,
+      image: globalArrowImage, // <-- ADICIONE ESTA LINHA
     });
     this.projectiles.push(arrow);
-  }
-
-  reload() {
-    this.switchState("reload");
-    this.cooldown = 80;
   }
 
   // atualiza a hitbox do jogador
@@ -217,6 +244,13 @@ class Player {
   animate() {
     this.frameTimer++;
     if (this.frameTimer >= this.frameInterval) {
+      if (
+        this.currentState === "attack" &&
+        this.frameX === this.maxFrames - 1
+      ) {
+        this.switchState("idle");
+      }
+
       this.frameX = (this.frameX + 1) % this.maxFrames;
       this.frameTimer = 0;
     }
@@ -229,7 +263,7 @@ class Player {
     if (flip) {
       context.scale(-1, 1);
       context.drawImage(
-        this.image,
+        this.currentImage,
         this.frameX * this.frameWidth,
         0,
         this.frameWidth,
@@ -241,7 +275,7 @@ class Player {
       );
     } else {
       context.drawImage(
-        this.image,
+        this.currentImage,
         this.frameX * this.frameWidth,
         0,
         this.frameWidth,
@@ -380,15 +414,14 @@ class Player {
 }
 
 class Projectile {
-  constructor({ position, direction }) {
+  constructor({ position, direction, image }) {
     this.position = position;
     this.direction = direction;
     this.speed = 5 * direction;
     this.width = 16;
     this.height = 4;
 
-    this.image = new Image();
-    this.image.src = "./sprites/projectiles/arrow.png";
+    this.image = image;
   }
 
   update() {
@@ -421,7 +454,14 @@ class Projectile {
 // --- CLASSE PARA ANIMAÇÃO DE MORTE ---
 // Adicionada para lidar com a explosão dos inimigos
 class DeathAnimation extends Sprite {
-  constructor({ position, imageSrc, frameWidth, frameHeight, totalFrames, frameInterval = 10 }) {
+  constructor({
+    position,
+    imageSrc,
+    frameWidth,
+    frameHeight,
+    totalFrames,
+    frameInterval = 10,
+  }) {
     // Chama o construtor base do Sprite (que só define 'position' e 'imageSrc')
     super({ position, imageSrc });
 
@@ -430,7 +470,7 @@ class DeathAnimation extends Sprite {
     this.image.onload = () => {
       this.loaded = true;
       // Define a largura e altura baseadas no frame, não na imagem inteira
-      this.width = frameWidth; 
+      this.width = frameWidth;
       this.height = frameHeight;
     };
     this.image.src = imageSrc;
@@ -442,18 +482,18 @@ class DeathAnimation extends Sprite {
     this.frameX = 0; // Frame atual
     this.frameTimer = 0;
     this.frameInterval = frameInterval; // Velocidade da animação
-    
+
     this.done = false; // Flag para saber se a animação terminou
   }
 
   // Método de atualização (usa o timer interno, como a classe Player)
-  update() { 
+  update() {
     if (this.done || !this.loaded) return;
 
     this.frameTimer++;
     if (this.frameTimer >= this.frameInterval) {
       this.frameX++; // Avança para o próximo frame
-      
+
       if (this.frameX >= this.maxFrames) {
         this.done = true; // Marca a animação como concluída
         this.frameX = this.maxFrames - 1; // Trava no último frame
@@ -481,6 +521,7 @@ class DeathAnimation extends Sprite {
     );
   }
 }
+<<<<<<< HEAD
 
 
 class SeedProjectile {
@@ -561,3 +602,5 @@ class SeedProjectile {
     context.restore();
   }
 }
+=======
+>>>>>>> a2483e4c553ea6ceb2fb14cc885d9ec359dbe9d6
