@@ -1,28 +1,34 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-    <title>Jogo de Plataforma</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>jogo</title>
     <style>
         body {
             margin: 0;
-            background-color: black;
+            background: black;
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
         }
         canvas {
-            border: 1px solid white;
+            background: #333;
+            image-rendering: pixelated;
         }
     </style>
 </head>
 <body>
     <canvas></canvas>
-
-    <script src="./js/control.js"></script>
-    <script src="./js/sprites.js"></script>
-    <script src="./js/barryCherry.js"></script>
-    <script src="./js/toggle.js"></script>
-    <script src="./js/game.js"></script>
-</body>
+    <script src="js/control.js"></script> 
+    <script src="js/sprites.js"></script> 
+    <script src="js/player.js"></script> 
+    <script src="js/terrainManager.js"></script> 
+    <script src="js/cerejinha.js"></script>
+    <script src="js/cebolete.js"></script>
+    <script src="js/astro.js"></script>
+    <script src="js/game.js"></script>
+    </body>
 </html>
