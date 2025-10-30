@@ -88,6 +88,12 @@ const extraPlantsImage = new Image();
 extraPlantsImage.src =
   "./Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Extra_plants (16 x 16).png";
 
+  const heartImage = new Image();
+let heartLoaded = false;
+heartImage.src = "./Sprite Pack 8/vidas.png";
+heartImage.onload = () => {
+  heartLoaded = true;
+};
 const player = new Player();
 const enemies = [];
 const platforms = [];
@@ -483,22 +489,56 @@ function animate() {
   // Jogador
   player.draw(context);
 
-  context.restore();
+  context.restore(); // Fim da câmera
 
   context.save();
   context.font = "16px Arial";
   context.fillStyle = "white";
 
+  // Desenha o Nível
   const levelText = `NIVEL: ${currentLevel} / ${TOTAL_LEVELS}`;
   context.fillText(levelText, 10, 20);
 
-  // desenha vidas
-  const livesText = `VIDAS: ${player.lives}`;
-  context.fillText(livesText, 10, 40);
+//vidas do player (coraçao)
+  if (heartLoaded) {
+    const heartFullCrop = { x: 0, y: 0, width: 61, height: 41 };
+    const heartEmptyCrop = { x: 61, y: 0, width: 65, height: 41 };
 
+    const maxLives = 3; 
+    
+    const drawWidth = 30.5; 
+    const drawHeight = 20.5; 
+    
+    const startX = 10; 
+    const startY = 25; 
+    const spacing = 40; 
+
+    for (let i = 0; i < maxLives; i++) {
+      // Decide qual coração desenhar
+      const crop = (i < player.lives) ? heartFullCrop : heartEmptyCrop;
+      
+      context.drawImage(
+        heartImage,
+        crop.x,
+        crop.y,
+        crop.width,
+        crop.height,
+        startX + (i * spacing), 
+        startY,                 
+        drawWidth,              
+        drawHeight              
+      );
+    }
+  } else {
+    
+    const livesText = `VIDAS: ${player.lives}`;
+    context.fillText(livesText, 10, 40);
+  }
+
+  // qtd de inimigos 
   const enemiesText = `INIMIGOS: ${window.remainingEnemies}`;
-  context.fillText(enemiesText, 10, 60);
-
+  context.fillText(enemiesText, 10, 60); 
+  
   //game over
   if (player.isDead) {
     context.fillStyle = "rgba(0, 0, 0, 0.5)";
