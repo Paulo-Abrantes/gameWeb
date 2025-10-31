@@ -35,6 +35,7 @@ class Cebolete {
     this.elapsedMs = 0;
     this.frameInterval = CEBO_RUN_FRAME_MS;
 
+    //sprites
     this.images = {
       run: new Image(),
       jump: new Image(),
@@ -123,6 +124,7 @@ class Cebolete {
     this.attackCooldown = CEBO_ATTACK_COOLDOWN;
   }
 
+  //criar semente (projetil)
   spawnSeed() {
     const seedX =
       this.facing === "right"
@@ -181,8 +183,9 @@ class Cebolete {
         this.switchState("run");
 
         if (this.attackCooldown <= 0) {
-          this.shoot(); 
+          this.shoot(); // Hora de atacar
         } else {
+          // Se não pode atacar, faz o pulinho
           this.hopTimer -= dt;
           if (this.hopTimer <= 0) {
             this.velocity.y = -CEBO_JUMP_POWER;

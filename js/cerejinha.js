@@ -10,6 +10,7 @@ class Cerejinha {
     this.width = 25;
     this.height = 30;
 
+    // alinhamento com o chao
     this.spriteBaselineHeight = 32;
     this.groundBottom = y + this.spriteBaselineHeight;
     this.isImageLoaded = false;
@@ -25,9 +26,11 @@ class Cerejinha {
     this.totalFrames = 6;
     this.facing = "right";
 
+    // limites de patrulha
     this.patrolStartX = patrolStartX;
     this.patrolEndX = patrolEndX;
 
+    // hitbox proporcional
     this.hitbox = {
       position: {
         x: this.position.x,
@@ -87,6 +90,7 @@ class Cerejinha {
 
     this.updateAnimation(deltaTime);
 
+    // movimento horizontal
     this.position.x += this.velocity.x * deltaTime;
 
     const bottom = this.position.y + this.height;
@@ -94,6 +98,7 @@ class Cerejinha {
       this.position.y = this.groundBottom - this.height;
     }
 
+    // verifica limites
     if (
       this.position.x + this.width >= this.patrolEndX &&
       this.velocity.x > 0
@@ -105,6 +110,7 @@ class Cerejinha {
       this.facing = "right";
     }
 
+    // atualiza
     this.hitbox.position.x = this.position.x;
     this.hitbox.position.y = this.position.y + 5;
   }

@@ -224,6 +224,7 @@ class Astro {
     this.hitbox.position.y = this.position.y + 3;
   }
 
+  //desenha inimigo (astro)
   draw(context) {
     if (!this.image || !this.image.complete) return;
 
