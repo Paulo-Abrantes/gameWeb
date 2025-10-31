@@ -388,14 +388,14 @@ function animate() {
       for (let j = enemy.projectiles.length - 1; j >= 0; j--) {
         const seed = enemy.projectiles[j];
         if (collision({ object1: seed, object2: player.hitbox })) {
-          player.takeDamage(2);
+          player.takeDamage();
 
           enemy.projectiles.splice(j, 1);
         }
       }
 
       if (collision({ object1: player.hitbox, object2: enemy.hitbox })) {
-        player.takeDamage(2);
+        player.takeDamage();
       }
     } else if (enemy instanceof Astro) {
       if (
