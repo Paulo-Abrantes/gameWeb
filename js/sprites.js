@@ -166,11 +166,11 @@ class Player {
     this.isInvincible = true;
     this.invincibilityTimer = this.invincibilityDuration;
 
-    this.lives -= damageAmount;
+    this.lives = Math.max(0, this.lives - damageAmount);
 
     console.log("VIDAS RESTANTES: " + this.lives);
 
-    if (this.lives <= 0) {
+    if (this.lives == 0) {
       this.die();
     } else {
       this.switchState("hurt");

@@ -102,10 +102,10 @@ class Player extends Sprite {
   move(input) {
     this.velocity.x = 0;
     if (input.left) {
-      this.velocity.x = -2;
+      this.velocity.x = -0.5;
       this.direction = -1;
     } else if (input.right) {
-      this.velocity.x = 2;
+      this.velocity.x = 0.5;
       this.direction = 1;
     }
 
@@ -164,11 +164,7 @@ class Player extends Sprite {
     }
   }
 
-  checkForVerticalCollisions({
-    worldHeight,
-    platforms = [],
-    solidPlatforms = [],
-  }) {
+  checkForVerticalCollisions({ worldHeight, platforms = [], solidPlatforms = [], prevBottom }) {
     this.isOnGround = false;
 
     for (let i = 0; i < solidPlatforms.length; i++) {
@@ -210,6 +206,8 @@ class Player extends Sprite {
   }
 
   update(worldHeight, platforms = [], solidPlatforms = [], input, deltaTime) {
+    const prevBottom = this.position.y + this.height;
+    
     super.updateAnimation(deltaTime);
     if (this.cooldown > 0) this.cooldown--;
 
@@ -221,7 +219,7 @@ class Player extends Sprite {
 
     this.applyGravity();
     this.position.y += this.velocity.y;
-    this.checkForVerticalCollisions({ worldHeight, platforms, solidPlatforms });
+    this.checkForVerticalCollisions({ worldHeight, platforms, solidPlatforms, prevBottom });
 
     for (const arrow of this.projectiles) {
       arrow.update();

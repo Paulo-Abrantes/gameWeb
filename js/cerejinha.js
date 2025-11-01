@@ -7,8 +7,8 @@ class Cerejinha {
 
     this.frameWidth = 32;
     this.frameHeight = 32;
-    this.width = 25;
-    this.height = 30;
+    this.width = 20;
+    this.height = 20;
 
     // alinhamento com o chao
     this.spriteBaselineHeight = 32;
@@ -33,11 +33,11 @@ class Cerejinha {
     // hitbox proporcional
     this.hitbox = {
       position: {
-        x: this.position.x,
-        y: this.position.y + 5,
+        x: this.position.x + 6,
+        y: this.position.y + 10,
       },
-      width: this.width,
-      height: this.height - 5,
+      width: 14,
+      height: 14,
     };
   }
 
@@ -111,7 +111,7 @@ class Cerejinha {
     }
 
     // atualiza
-    this.hitbox.position.x = this.position.x;
-    this.hitbox.position.y = this.position.y + 5;
+    this.hitbox.position.x = this.position.x + 6;
+    this.hitbox.position.y = this.position.y + 10;
   }
 }

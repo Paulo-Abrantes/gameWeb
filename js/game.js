@@ -138,7 +138,7 @@ function generateChunkContent(levelIndex, chunkIndex, startX) {
   }
 
   const newPlatforms = platformGenerator.createFloatingPlatforms(startX, FLOATING_PLATFORMS);
-  solidPlatforms.push(...newPlatforms);
+  platforms.push(...newPlatforms);
   
   const spriteH = 32;
   const spawnY = groundY - spriteH;
@@ -148,17 +148,14 @@ function generateChunkContent(levelIndex, chunkIndex, startX) {
 
   const astroX = startX + 5 * TILE_SPACING;
   const ceboleteX = startX + 13 * TILE_SPACING;
+  const cerejinhaX = startX + 17 * TILE_SPACING;
 
   if (!HAS_DEATH_GAP) {
     const astro = new Astro({ x: astroX, y: spawnY, patrolStartX, patrolEndX });
-    const cebolete = new Cebolete({
-      x: ceboleteX,
-      y: spawnY,
-      patrolStartX,
-      patrolEndX,
-    });
-    
-    enemies.push(astro, cebolete);
+    const cebolete = new Cebolete({x: ceboleteX, y: spawnY, patrolStartX, patrolEndX});
+    const cerejinha = new Cerejinha({ x: cerejinhaX, y: spawnY, patrolStartX, patrolEndX });
+
+    enemies.push(astro, cebolete, cerejinha);
   }
 
 }
@@ -388,14 +385,14 @@ function animate() {
       for (let j = enemy.projectiles.length - 1; j >= 0; j--) {
         const seed = enemy.projectiles[j];
         if (collision({ object1: seed, object2: player.hitbox })) {
-          player.takeDamage();
+          player.takeDamage(2);
 
           enemy.projectiles.splice(j, 1);
         }
       }
 
       if (collision({ object1: player.hitbox, object2: enemy.hitbox })) {
-        player.takeDamage();
+        player.takeDamage(2);
       }
     } else if (enemy instanceof Astro) {
       if (
