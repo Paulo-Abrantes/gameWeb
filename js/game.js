@@ -185,9 +185,6 @@ function generateChunkContent(levelIndex, chunkIndex, startX) {
     });
 
     enemies.push(astro, cebolete, cerejinha);
-
-    //teste1
-    console.log("INIMIGO CRIADO NO NÍVEL " + currentLevel, astro);
   }
 }
 
@@ -263,7 +260,6 @@ function resetGame() {
   camera.position.x = 0;
   camera.position.y = 0;
 
-  // 5. Recria a "poça d'água" inicial (lógica do waterImage.onload)
   const waterCropbox = {
     x: 0,
     y: 2,
@@ -663,7 +659,6 @@ function animate() {
       canvas.height / 2 - 20
     );
 
-    // Adiciona o texto para reiniciar
     context.fillStyle = "white";
     context.font = "20px Arial";
     context.fillText(
@@ -672,7 +667,6 @@ function animate() {
       canvas.height / 2 + 20
     );
 
-    // Verifica se a tecla 'R' foi pressionada
     if (keys.r.pressed) {
       resetGame(); // Reinicia o jogo
     }
