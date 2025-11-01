@@ -86,19 +86,27 @@ const extraPlantsImage = new Image();
 extraPlantsImage.src =
   "./Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Extra_plants (16 x 16).png";
 
+const heartImage = new Image();
+let heartLoaded = false;
+heartImage.src = "./Sprite Pack 8/vidas.png";
+heartImage.onload = () => {
+  heartLoaded = true;
+};
+
 const player = new Player();
 const enemies = [];
 const platforms = [];
 const solidPlatforms = [];
 const sprites = [];
 
-const WORLD_GROUND_Y = 190; 
+const WORLD_GROUND_Y = 190;
 const TILE_SPACING = 15.4;
 
-const FLOATING_PLATFORMS = [  // a construção das plataformas 
-  { x: 3 * TILE_SPACING, y: WORLD_GROUND_Y - 80, width: 3 }, 
-  { x: 8 * TILE_SPACING, y: WORLD_GROUND_Y - 55, width: 4 }, 
-  { x: 15 * TILE_SPACING, y: WORLD_GROUND_Y - 30, width: 2 } 
+const FLOATING_PLATFORMS = [
+  // a construção das plataformas
+  { x: 3 * TILE_SPACING, y: WORLD_GROUND_Y - 80, width: 3 },
+  { x: 8 * TILE_SPACING, y: WORLD_GROUND_Y - 55, width: 4 },
+  { x: 15 * TILE_SPACING, y: WORLD_GROUND_Y - 30, width: 2 },
 ];
 
 const platformGenerator = new PlatformGenerator(terrainImage);
@@ -109,23 +117,23 @@ function generateChunkContent(levelIndex, chunkIndex, startX) {
   const groundCropbox = { x: 149, y: 123, width: 17, height: 19 };
   const numGroundTiles = 20;
   const tileSpacing = 15.4;
-  const groundY = WORLD_GROUND_Y; 
-  
-  const HAS_DEATH_GAP = chunkIndex === 1 || chunkIndex === 3; // ta meio errado isso aqui 
-  const DEATH_GAP_START = 8; 
-  const DEATH_GAP_END = 12;  // ate aqui era para morrer quando cai no buraco mas n morre 
-  
+  const groundY = WORLD_GROUND_Y;
+
+  const HAS_DEATH_GAP = chunkIndex === 1 || chunkIndex === 3; // ta meio errado isso aqui
+  const DEATH_GAP_START = 8;
+  const DEATH_GAP_END = 12; // ate aqui era para morrer quando cai no buraco mas n morre
+
   const hasWaterGap = levelIndex === 1 && totalChunkIndex === 0;
   const waterGapStartTile = 15;
   const waterGapEndTile = 17;
-  
+
   for (let i = 0; i < numGroundTiles; i++) {
     if (hasWaterGap && i >= waterGapStartTile && i < waterGapEndTile) {
       continue;
     }
-    
+
     if (HAS_DEATH_GAP && i >= DEATH_GAP_START && i < DEATH_GAP_END) {
-        continue;
+      continue;
     }
 
     platforms.push(
@@ -137,12 +145,15 @@ function generateChunkContent(levelIndex, chunkIndex, startX) {
     );
   }
 
-  const newPlatforms = platformGenerator.createFloatingPlatforms(startX, FLOATING_PLATFORMS);
+  const newPlatforms = platformGenerator.createFloatingPlatforms(
+    startX,
+    FLOATING_PLATFORMS
+  );
   platforms.push(...newPlatforms);
-  
+
   const spriteH = 32;
   const spawnY = groundY - spriteH;
-  
+
   const patrolStartX = startX;
   const patrolEndX = startX + CHUNK_WIDTH - 20;
 
@@ -151,13 +162,33 @@ function generateChunkContent(levelIndex, chunkIndex, startX) {
   const cerejinhaX = startX + 17 * TILE_SPACING;
 
   if (!HAS_DEATH_GAP) {
-    const astro = new Astro({ x: astroX, y: spawnY, patrolStartX, patrolEndX });
-    const cebolete = new Cebolete({x: ceboleteX, y: spawnY, patrolStartX, patrolEndX});
-    const cerejinha = new Cerejinha({ x: cerejinhaX, y: spawnY, patrolStartX, patrolEndX });
+    const astro = new Astro({
+      x: astroX,
+      y: spawnY,
+      patrolStartX,
+      patrolEndX,
+      level: currentLevel,
+    });
+    const cebolete = new Cebolete({
+      x: ceboleteX,
+      y: spawnY,
+      patrolStartX,
+      patrolEndX,
+      level: currentLevel,
+    });
+    const cerejinha = new Cerejinha({
+      x: cerejinhaX,
+      y: spawnY,
+      patrolStartX,
+      patrolEndX,
+      level: currentLevel,
+    });
 
     enemies.push(astro, cebolete, cerejinha);
-  }
 
+    //teste1
+    console.log("INIMIGO CRIADO NO NÍVEL " + currentLevel, astro);
+  }
 }
 
 function switchBackgrounds(levelIndex) {
@@ -227,13 +258,14 @@ waterImage.onload = () => {
     })
   );
 
+  window.remainingEnemies = 0;
   switchBackgrounds(1);
   buildNewChunk();
   buildNewChunk();
   buildNewChunk();
 
-  window.totalEnemies = enemies.length;
-  window.remainingEnemies = enemies.length;
+  /*window.totalEnemies = enemies.length;
+  window.remainingEnemies = enemies.length;*/
 };
 
 const camera = {
@@ -275,12 +307,13 @@ function animate() {
     if (keys.mouseLeft.pressed) player.attack();
 
     player.update(worldHeight, worldWidth, platforms, solidPlatforms, input);
-    
+
     const DEATH_ZONE_Y = worldHeight + 50;
 
-    if (player.position.y > DEATH_ZONE_Y) { // aqui tbm cosia de morrer no buraco que n funciona
-        player.lives = 0; 
-        player.die();    
+    if (player.position.y > DEATH_ZONE_Y) {
+      // aqui tbm cosia de morrer no buraco que n funciona
+      player.lives = 0;
+      player.die();
     }
   }
 
@@ -313,12 +346,12 @@ function animate() {
   const allChunksBuilt = totalChunkIndex >= TOTAL_CHUNKS;
   const atWorldEnd = player.position.x + player.width >= worldBuildLimit - 8;
 
-if (!window.gameWon && !player.isDead && allChunksBuilt && atWorldEnd) {
-  window.gameWon = true;
-  console.log("YOU WIN (fim do mundo)");
-}
+  if (!window.gameWon && !player.isDead && allChunksBuilt && atWorldEnd) {
+    window.gameWon = true;
+    console.log("YOU WIN (fim do mundo)");
+  }
 
-  const recycleThreshold = player.position.x - CHUNK_WIDTH * 3; 
+  const recycleThreshold = player.position.x - CHUNK_WIDTH * 3;
 
   for (let i = platforms.length - 1; i >= 0; i--) {
     const platform = platforms[i];
@@ -361,7 +394,6 @@ if (!window.gameWon && !player.isDead && allChunksBuilt && atWorldEnd) {
 
         enemies.splice(i, 1);
         player.projectiles.splice(j, 1);
-        window.remainingEnemies--;
         break;
       }
     }
@@ -386,7 +418,9 @@ if (!window.gameWon && !player.isDead && allChunksBuilt && atWorldEnd) {
           })
         );
         enemies.splice(i, 1);
-        window.remainingEnemies--;
+        if (enemy.level === currentLevel) {
+          window.remainingEnemies--;
+        }
       } else if (collision({ object1: player.hitbox, object2: enemy.hitbox })) {
         player.takeDamage();
       }
@@ -519,10 +553,49 @@ if (!window.gameWon && !player.isDead && allChunksBuilt && atWorldEnd) {
   const levelText = `NIVEL: ${currentLevel} / ${TOTAL_LEVELS}`;
   context.fillText(levelText, 10, 20);
 
-  const livesText = `VIDAS: ${player.lives}`; // n ta funcinando 
-  context.fillText(livesText, 10, 40);
+  //vidas do player (coraçao)
+  if (heartLoaded) {
+    const heartFullCrop = { x: 0, y: 0, width: 61, height: 41 };
+    const heartEmptyCrop = { x: 61, y: 0, width: 65, height: 41 };
 
-  const enemiesText = `INIMIGOS: ${window.remainingEnemies}`;
+    const maxLives = 3;
+
+    const drawWidth = 30.5;
+    const drawHeight = 20.5;
+
+    const startX = 10;
+    const startY = 25;
+    const spacing = 40;
+
+    for (let i = 0; i < maxLives; i++) {
+      const crop = i < player.lives ? heartFullCrop : heartEmptyCrop;
+
+      context.drawImage(
+        heartImage,
+        crop.x,
+        crop.y,
+        crop.width,
+        crop.height,
+        startX + i * spacing,
+        startY,
+        drawWidth,
+        drawHeight
+      );
+    }
+  } else {
+    const livesText = `VIDAS: ${player.lives}`;
+    context.fillText(livesText, 10, 40);
+  }
+
+  //contagem inimigos
+  let enemiesLeftThisLevel = 0;
+  for (let k = 0; k < enemies.length; k++) {
+    if (enemies[k].level === currentLevel) {
+      enemiesLeftThisLevel++;
+    }
+  }
+  const enemiesText = `INIMIGOS: ${enemiesLeftThisLevel}`;
+
   context.fillText(enemiesText, 10, 60);
 
   if (player.isDead) {

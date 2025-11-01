@@ -11,7 +11,7 @@ const ASTRO_PUNCH_FRAME_MS = 80;
 const ASTRO_PUNCH_ACTIVE_FRAME = 3;
 
 class Astro {
-  constructor({ x, y, patrolStartX = 148, patrolEndX = 231 }) {
+  constructor({ x, y, patrolStartX = 148, patrolEndX = 231, level = 1 }) {
     this.position = { x, y };
     this.velocity = { x: -ASTRO_X_VELOCITY, y: 0 };
 
@@ -19,6 +19,8 @@ class Astro {
     this.frameHeight = 32;
     this.width = 20;
     this.height = 20;
+
+    this.level = level;
 
     this.spriteBaselineHeight = 32;
     this.groundBottom = y + this.spriteBaselineHeight;

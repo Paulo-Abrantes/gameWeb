@@ -14,7 +14,7 @@ const CEBO_ATTACK_COOLDOWN = 2.5;
 const CEBO_ATTACK_FRAME_TO_SHOOT = 3;
 
 class Cebolete {
-  constructor({ x, y, patrolStartX = 148, patrolEndX = 231 }) {
+  constructor({ x, y, patrolStartX = 148, patrolEndX = 231, level = 1 }) {
     this.position = { x, y };
     this.velocity = { x: CEBO_X_VELOCITY, y: 0 };
 
@@ -23,6 +23,8 @@ class Cebolete {
 
     this.spriteBaselineHeight = 32;
     this.groundBottom = y + this.spriteBaselineHeight;
+
+    this.level = level;
 
     this.patrolStartX = patrolStartX;
     this.patrolEndX = patrolEndX;

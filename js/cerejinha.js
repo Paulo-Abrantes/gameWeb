@@ -1,7 +1,7 @@
 const CEREJINHA_X_VELOCITY = 20;
 
 class Cerejinha {
-  constructor({ x, y, patrolStartX = 148, patrolEndX = 231 }) {
+  constructor({ x, y, patrolStartX = 148, patrolEndX = 231, level = 1 }) {
     this.position = { x, y };
     this.velocity = { x: CEREJINHA_X_VELOCITY, y: 0 };
 
@@ -9,6 +9,8 @@ class Cerejinha {
     this.frameHeight = 32;
     this.width = 20;
     this.height = 20;
+
+    this.level = level;
 
     // alinhamento com o chao
     this.spriteBaselineHeight = 32;
