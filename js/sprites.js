@@ -315,16 +315,16 @@ class Player {
         platformCollision({ object1: this.hitbox, object2: platform }) &&
         this.hitbox.position.y + this.hitbox.height < platform.position.y + 5
       ) {
-         if (this.velocity.x > 0) {
-           this.velocity.x = 0;
-           this.position.x = platform.position.x - this.hitbox.width - 0.01;
-           break;
-         }
-         if (this.velocity.x < 0) {
-           this.velocity.x = 0;
-           this.position.x = platform.position.x + platform.width + 0.01;
-           break;
-         }
+        if (this.velocity.x > 0) {
+          this.velocity.x = 0;
+          this.position.x = platform.position.x - this.hitbox.width - 0.01;
+          break;
+        }
+        if (this.velocity.x < 0) {
+          this.velocity.x = 0;
+          this.position.x = platform.position.x + platform.width + 0.01;
+          break;
+        }
       }
     }
   }
@@ -363,13 +363,7 @@ class Player {
         }
       }
     }
-    if (!this.isOnGround && this.position.y + this.height >= worldHeight) {
-      this.velocity.y = 0;
-      this.position.y = worldHeight - this.height;
-      this.isOnGround = true;
-    }
   }
-
 
   update(worldHeight, worldWidth, platforms = [], solidPlatforms = [], input) {
     if (this.isDead) {
@@ -394,10 +388,10 @@ class Player {
       this.position.x += this.velocity.x;
     }
     this.checkForHorizontalCollisions({ solidPlatforms });
-    
-    this.applyGravity(); 
-    this.position.y += this.velocity.y; 
-    this.checkForVerticalCollisions({ worldHeight, platforms, solidPlatforms }); 
+
+    this.applyGravity();
+    this.position.y += this.velocity.y;
+    this.checkForVerticalCollisions({ worldHeight, platforms, solidPlatforms });
 
     if (this.cooldown > 0) this.cooldown--;
 
@@ -597,7 +591,7 @@ class PlatformGenerator {
     this.TILES = {
       PLAT_LEFT: { x: 144, y: 48, width: 16, height: 16 },
       PLAT_CENTER: { x: 160, y: 48, width: 16, height: 16 },
-      PLAT_RIGHT: { x: 208, y: 48, width: 16, height: 16 }
+      PLAT_RIGHT: { x: 208, y: 48, width: 16, height: 16 },
     };
   }
 
