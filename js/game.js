@@ -236,6 +236,60 @@ function buildNewChunk() {
   }
 }
 
+function resetGame() {
+  //reseta player
+  player.position = { x: 100, y: 100 };
+  player.velocity = { x: 0, y: 0 };
+  player.lives = 3;
+  player.isDead = false;
+  player.deathAnimationSpawned = false;
+  player.isInvincible = false;
+  player.invincibilityTimer = 0;
+  player.projectiles.length = 0;
+  player.switchState("idle");
+
+  //limpa arrays
+  enemies.length = 0;
+  platforms.length = 0;
+  solidPlatforms.length = 0;
+  sprites.length = 0;
+
+  //reseta mundo
+  currentLevel = 1;
+  totalChunkIndex = 0;
+  worldBuildLimit = 0;
+  window.gameWon = false;
+  lastTime = performance.now(); // Reseta o delta time
+  camera.position.x = 0;
+  camera.position.y = 0;
+
+  // 5. Recria a "poça d'água" inicial (lógica do waterImage.onload)
+  const waterCropbox = {
+    x: 0,
+    y: 2,
+    width: waterImage.width,
+    height: waterImage.height,
+  };
+  const lakeY = WORLD_GROUND_Y;
+  const waterGapStartTile = 15;
+  const tileSpacing = 15.4;
+  const lakeX = tileSpacing * waterGapStartTile;
+  platforms.push(
+    new Platform({
+      position: { x: lakeX, y: lakeY },
+      image: waterImage,
+      cropbox: waterCropbox,
+    })
+  );
+
+  switchBackgrounds(1);
+  buildNewChunk();
+  buildNewChunk();
+  buildNewChunk();
+
+  keys.r.pressed = false;
+}
+
 waterImage.onload = () => {
   waterLoaded = true;
 
@@ -603,8 +657,27 @@ function animate() {
     context.fillRect(0, 0, canvas.width, canvas.height);
     context.fillStyle = "red";
     context.font = "40px Arial";
-    context.fillText("GAME OVER", canvas.width / 2 - 100, canvas.height / 2);
-    return;
+    context.fillText(
+      " GAME OVER",
+      canvas.width / 2 - 100,
+      canvas.height / 2 - 20
+    );
+
+    // Adiciona o texto para reiniciar
+    context.fillStyle = "white";
+    context.font = "20px Arial";
+    context.fillText(
+      "Clique 'R' para tentar novamente",
+      canvas.width / 2 - 110,
+      canvas.height / 2 + 20
+    );
+
+    // Verifica se a tecla 'R' foi pressionada
+    if (keys.r.pressed) {
+      resetGame(); // Reinicia o jogo
+    }
+
+    return; // Para a execução do 'animate'
   }
 
   if (window.gameWon) {
