@@ -275,7 +275,7 @@ function animate() {
     if (keys.mouseLeft.pressed) player.attack();
 
     player.update(worldHeight, worldWidth, platforms, solidPlatforms, input);
-
+    
     const DEATH_ZONE_Y = worldHeight + 50;
 
     if (player.position.y > DEATH_ZONE_Y) { // aqui tbm cosia de morrer no buraco que n funciona
@@ -308,6 +308,15 @@ function animate() {
   ) {
     buildNewChunk();
   }
+
+  const TOTAL_CHUNKS = TOTAL_LEVELS * CHUNKS_PER_LEVEL;
+  const allChunksBuilt = totalChunkIndex >= TOTAL_CHUNKS;
+  const atWorldEnd = player.position.x + player.width >= worldBuildLimit - 8;
+
+if (!window.gameWon && !player.isDead && allChunksBuilt && atWorldEnd) {
+  window.gameWon = true;
+  console.log("YOU WIN (fim do mundo)");
+}
 
   const recycleThreshold = player.position.x - CHUNK_WIDTH * 3; 
 
@@ -404,12 +413,12 @@ function animate() {
     }
   }
 
-  if (enemies.length === 0 && !player.isDead) {
+  /*if (enemies.length === 0 && !player.isDead) {
     if (!window.gameWon) {
       window.gameWon = true;
       console.log("player venceu!");
     }
-  }
+  }*/
 
   camera.position.x = -player.position.x + scaledCanvas.width / 2;
   camera.position.y = -player.position.y + scaledCanvas.height / 2;
